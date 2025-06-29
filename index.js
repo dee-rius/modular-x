@@ -4,22 +4,22 @@ import inquirer from "inquirer";
 import fs from "fs";
 
 const actionKeywords = {
-    "read": readEquation,
-    "edit": editEqaution,
-    "create": createEquation,
-    "quit": quit,
+    "read expression": readExpression,
+    "edit expression": editEqaution,
+    "create expression": createExpression,
+    "quit expression": quit,
 }
 
 const processColor = chalk.yellow;
 
-const equationsDirectoryName = "Equations folder";
+const expressionsDirectoryName = "Expressions folder";
 
 async function checkIfEquaionsDirectoryExists(){
     try{
-        await fs.promises.access(equationsDirectoryName);
+        await fs.promises.access(expressionsDirectoryName);
     }
     catch{
-        await fs.promises.mkdir(equationsDirectoryName);
+        await fs.promises.mkdir(expressionsDirectoryName);
     }
 
     let launchingSpinner = nanospinner.createSpinner(processColor("Launching...")).start()
@@ -33,26 +33,26 @@ async function getUserActionChoice(){
     try{
         const action = await inquirer.prompt(
             {
-                name:"chosen_acion_keyword",
+                name:"chosen_action_keyword",
                 type: "list",
                 message: "Desired action: ",
-                choices: ["create", "rename", "read", "edit", "delete", "quit"],
+                choices: ["create expression", "rename expression", "read expression", "edit expression", "delete expression", "quit"],
                 async default(){
-                    let equations = await fs.promises.readdir(equationsDirectoryName);
+                    let expressions = await fs.promises.readdir(expressionsDirectoryName);
 
-                    if(equations.length > 0){
-                        return "read";
+                    if(expressions.length > 0){
+                        return "read expression";
                     }
                     else{
-                        return "create";
+                        return "create expression";
                     }
                 }
             }
         )
 
-        actionKeywords[action.chosen_acion_keyword]();
+        actionKeywords[action.chosen_action_keyword]();
     }catch (error){
-        console.log(`something went wrong!`)
+        console.log(`Something went wrong: ${error}`)
     }
 } 
 
@@ -65,27 +65,38 @@ async function quit(){
     }, 1000)
 }
 
-async function readEquation(){
+async function readExpression(){
 
 }
 async function editEqaution(){
 
 }
-async function createEquation(){
+async function createExpression(){
 
     try{
-        let equation_name = await inquirer.prompt({
-            name: "equation_name",
+        let expression_name = await inquirer.prompt({
+            name: "expression_subject",
             type: "input",
-            message: "equation name",
-            default: "new equation name"
+            message: "expression name",
+            default: "new expression name"
         });
-        let equation_expression = await inquirer.prompt({
-            name: "equation_expression",
+        let expression_content = await inquirer.prompt({
+            name: "expression_content",
             type: "input",
-            message: `${equation_name.equation_name} = `,
+            message: `${expression_name.expression_subject} = `,
             default: "(x2 - x1)^2 + (y2 - y1)^2"
         })
+
+        try{
+            let full_expression = `${expression_name.expression_subject} = ${expression_content.expression_content}`;
+            let expressionFilePath = `${expressionsDirectoryName}/${expression_name.expression_subject}.txt`;
+            await fs.promises.writeFile(expressionFilePath, `${full_expression}`, "utf-8");
+        }
+        catch (error){
+            console.log(`Error occured ${error}`);
+            checkIfEquaionsDirectoryExists()
+        }
+        
     }
     catch (error){
         console.log(`Error occured: ${error}`)
