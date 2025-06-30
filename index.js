@@ -7,12 +7,16 @@ const actionKeywords = {
     "read expression": readExpression,
     "edit expression": editEqaution,
     "create expression": createExpression,
-    "quit expression": quit,
+    "quit": quit,
 }
 
+//styling
 const processColor = chalk.yellow;
+const processDuration = 1000;
+const expressionPrefix = "::";
 
 const expressionsDirectoryName = "Expressions folder";
+const expressionStorageFileType = "txt";
 
 async function checkIfEquaionsDirectoryExists(){
     try{
@@ -24,9 +28,9 @@ async function checkIfEquaionsDirectoryExists(){
 
     let launchingSpinner = nanospinner.createSpinner(processColor("Launching...")).start()
     setTimeout(() => {
-        launchingSpinner.success(); 
+        launchingSpinner.stop(); 
         getUserActionChoice()},
-    1000);
+    processDuration);
 }
 
 async function getUserActionChoice(){
@@ -36,6 +40,7 @@ async function getUserActionChoice(){
                 name:"chosen_action_keyword",
                 type: "list",
                 message: "Desired action: ",
+                prefix: "?",
                 choices: ["create expression", "rename expression", "read expression", "edit expression", "delete expression", "quit"],
                 async default(){
                     let expressions = await fs.promises.readdir(expressionsDirectoryName);
@@ -60,13 +65,57 @@ async function quit(){
     let quitingSpinner = nanospinner.createSpinner(processColor("Quitting...")).start();
 
     setTimeout(() => {
-        quitingSpinner.success();
+        quitingSpinner.stop();
         process.exit(0);
-    }, 1000)
+    }, processDuration)
 }
 
 async function readExpression(){
+    let expression = await inquirer.prompt({
+        name:"chosen_expression",
+        type:"list",
+        message: "Chose expression: ",
+        async choices(){
+            try{
+                let expressions = await fs.promises.readdir(expressionsDirectoryName);
+                return expressions.join("").split(`.${expressionStorageFileType}`);
+            }
+            catch{
+                console.log("Something went wrong: equation not found!");
+            }
+        },
+        async default(){
+            let expressions = await fs.promises.readdir(expressionsDirectoryName, {withFileTypes: false});
+            return expressions[getRandomInt(0, expressions.length - 1)];
+        },
+        async validate(input){
+            try{
+                await fs.promises.access(`${expressionsDirectoryName}/${input}.${expressionStorageFileType}`)
+                return true;
+            }
+            catch{
+                return false;
+            }
+        }
+    })
 
+    let expression_content = await fs.promises.readFile(`${expressionsDirectoryName}/${expression.chosen_expression}.${expressionStorageFileType}`, "utf-8")
+
+    let gettingContentSpinner = nanospinner.createSpinner(processColor("Getting expression...")).start();
+    setTimeout(
+        () => {
+            gettingContentSpinner.stop();
+            console.log(chalk.green(expressionPrefix,expression_content));
+
+            setTimeout(
+                ()=> {
+                    getUserActionChoice();
+                },
+                500
+            )
+        },
+        processDuration
+    )
 }
 async function editEqaution(){
 
@@ -75,9 +124,10 @@ async function createExpression(){
 
     try{
         let expression_name = await inquirer.prompt({
+            prefix: {idle: "?", done: "::"},
             name: "expression_subject",
             type: "input",
-            message: "expression name",
+            message: "Expression name: ",
             default: "new expression name"
         });
         let expression_content = await inquirer.prompt({
@@ -89,7 +139,7 @@ async function createExpression(){
 
         try{
             let full_expression = `${expression_name.expression_subject} = ${expression_content.expression_content}`;
-            let expressionFilePath = `${expressionsDirectoryName}/${expression_name.expression_subject}.txt`;
+            let expressionFilePath = `${expressionsDirectoryName}/${expression_name.expression_subject}.${expressionStorageFileType}`;
             await fs.promises.writeFile(expressionFilePath, `${full_expression}`, "utf-8");
         }
         catch (error){
@@ -105,3 +155,7 @@ async function createExpression(){
 }
 
 checkIfEquaionsDirectoryExists()
+
+function getRandomInt(min, max){
+    return Math.floor((Math.random() * (max - min)) + min);
+}
