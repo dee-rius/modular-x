@@ -124,8 +124,7 @@ async function createExpression(){
 
     try{
         let expression_name = await inquirer.prompt({
-            prefix: {idle: "?", done: "::"},
-            name: "expression_subject",
+            name: "expression_name",
             type: "input",
             message: "Expression name: ",
             default: "new expression name"
@@ -138,8 +137,8 @@ async function createExpression(){
         })
 
         try{
-            let full_expression = `${expression_name.expression_subject} = ${expression_content.expression_content}`;
-            let expressionFilePath = `${expressionsDirectoryName}/${expression_name.expression_subject}.${expressionStorageFileType}`;
+            let full_expression = `${expression_name.expression_name} = ${expression_content.expression_content}`;
+            let expressionFilePath = `${expressionsDirectoryName}/${expression_name.expression_name}.${expressionStorageFileType}`;
             await fs.promises.writeFile(expressionFilePath, `${full_expression}`, "utf-8");
         }
         catch (error){
