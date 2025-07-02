@@ -12,8 +12,10 @@
   "description": "",
   "dependencies": {
     "chalk": "^5.4.1",
+    "clack": "^0.1.0",
     "fs": "^0.0.1-security",
     "inquirer": "^12.6.3",
+    "inquirer-autocomplete-standalone": "^0.8.1",
     "nanospinner": "^1.2.2"
   }
 }
