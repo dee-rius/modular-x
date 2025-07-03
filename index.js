@@ -1,13 +1,14 @@
 #!usr/bin/env node
 
 import * as clack from "@clack/prompts";
+import path from "path";
 import chalk from "chalk";
 import fs from "fs/promises";
 
 const text_encoding = "utf-8";
 
 const expression_storage_directory_path = "expressions";
-const expression_storage_file_format = ".txt";
+const expression_storage_file_format = "txt";
 
 //responses
 
@@ -36,7 +37,7 @@ const expression_storage_file_format = ".txt";
         },
         {
             value: "read",
-            hint: "Read existing expression"
+            hint: "Read existing expression",
         },
         {
             value: "solve",
@@ -85,18 +86,38 @@ async function check_if_expression_storage_path_exists(){
 }
 
 async function get_user_action_choice(){
+    let user_action_choice_initial_value = "";
+    await setInitialValue();
+
     const user_action_choice = clack.select({
         message: "Select desired action:",
         placeholder: "Ctrl + C to quit",
+        initialValue: true,
+        initialValue:  user_action_choice_initial_value,
         options: available_action_choices,
     })
+
+
+
+    async function setInitialValue(){
+        //gets all expression staoge files
+        let expression_storage_files = await fs.readdir(expression_storage_directory_path);
+
+        //setting initial value based on num of expression storage files (files with the expression storage file format)
+        if(expression_storage_files.filter(storage_file => path.extname(storage_file) == expression_storage_file_format).length == 0){
+            user_action_choice_initial_value = "create";
+        }
+        else{
+            user_action_choice_initial_value = "read";
+        }
+    }
 }
 
 //utility functions
 
 async function read(expression_name){
     try{
-        let expression_storage_file_path = `${expression_storage_directory_path}/${expression_name}${expression_storage_file_format}`;
+        let expression_storage_file_path = `${expression_storage_directory_path}/${expression_name}.${expression_storage_file_format}`;
         let expression_content = await fs.readFile(expression_storage_file_path, text_encoding);
         return expression_content;
     }
@@ -108,7 +129,7 @@ async function read(expression_name){
 
 async function create_or_edit(expression_name, expression_content){
     try{
-        let expression_storage_file_path = `${expression_storage_directory_path}/${expression_name}${expression_storage_file_format}`;
+        let expression_storage_file_path = `${expression_storage_directory_path}/${expression_name}.${expression_storage_file_format}`;
         await fs.writeFile(expression_storage_file_path, expression_content, text_encoding);
     }
     catch{
@@ -151,6 +172,8 @@ function check_if_other_cmds_inputted(input){
         getUserActionChoice();
     }
 }
+
+
 
 function strip(string, toStrip){
     return string.replaceAll(toStrip, "");
