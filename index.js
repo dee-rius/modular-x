@@ -6,19 +6,97 @@ import fs from "fs/promises";
 
 const text_encoding = "utf-8";
 
-const expression_storage_directory_name = "expressions";
+const expression_storage_directory_path = "expressions";
 const expression_storage_file_format = ".txt";
+
+//responses
+
+    //e.g. Expression [ creation ] [ failed ] 
+    const expression_status_response_prefix = "Expression";
+
+//spinner styling
+
+    const expression_storing_spinner_text = "Storing expression";
+    const expression_reading_spinner_text = "Getting expression content";
+    
+    const spinner_duration = 1000;
+
+    //e.g Opening expression [ creation ] dialogue
+    const opening_dialoge = "Opening expression";
+
+//action choices
+    const available_action_choices = [
+        {
+            value: "create",
+            hint: "Create new expression"
+        },
+        {
+            value: "edit",
+            hint: "Edit existing expression"
+        },
+        {
+            value: "read",
+            hint: "Read existing expression"
+        },
+        {
+            value: "solve",
+            hint: "Solve existing expression"
+        },
+        {
+            value: "delete",
+            hint: "Delete existing expression"
+        },
+        {
+            value: "rename",
+            hint: "Rename existing expression"
+        },
+    ]
+
 //func to get user action
 
-//func to read user action
+//func to read user 
 
+async function boot(){
+    //creates a spinner (for styling purposes)
+    let booting_spinner = clack.spinner();
+    booting_spinner.start("Booting");
+    await sleep(1000);
+    booting_spinner.stop("Boot complete");
+
+    await sleep(500);
+
+    //displays important text
+    clack.log.warn(set_text_colour("Note: Ctrl + C to quit/cancel", "warn"))
+    await sleep(500);
+    check_if_expression_storage_path_exists()
+}
+
+async function check_if_expression_storage_path_exists(){
+    try{
+        //checks if the folder exists
+        await fs.access(expression_storage_directory_path);
+    }
+    catch{
+        //if it doesn't exist, creates a new one
+        await fs.mkdir(expression_storage_directory_path);
+    }
+
+    get_user_action_choice();
+}
+
+async function get_user_action_choice(){
+    const user_action_choice = clack.select({
+        message: "Select desired action:",
+        placeholder: "Ctrl + C to quit",
+        options: available_action_choices,
+    })
+}
 
 //utility functions
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function read(expression_name){
     try{
-        let expression_storage_file_path = `${expression_storage_directory_name}/${expression_name}${expression_storage_file_format}`;
+        let expression_storage_file_path = `${expression_storage_directory_path}/${expression_name}${expression_storage_file_format}`;
         let expression_content = await fs.readFile(expression_storage_file_path, text_encoding);
         return expression_content;
     }
@@ -30,11 +108,33 @@ async function read(expression_name){
 
 async function create_or_edit(expression_name, expression_content){
     try{
-        let expression_storage_file_path = `${expression_storage_directory_name}/${expression_name}${expression_storage_file_format}`;
+        let expression_storage_file_path = `${expression_storage_directory_path}/${expression_name}${expression_storage_file_format}`;
         await fs.writeFile(expression_storage_file_path, expression_content, text_encoding);
     }
     catch{
         //fill here;
+    }
+}
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+
+function set_text_colour(string, type = "default"){
+    switch (type){
+        case "action_keyword":
+            return chalk.blue(string);
+            break;
+        case "error":
+            return chalk.red(string);
+            break;
+        case "success":
+            return chalk.green(string);
+            break;
+        case "warn":
+            return chalk.yellow(string);
+            break;
+        case other:
+            return string;
     }
 }
 
@@ -55,3 +155,5 @@ function check_if_other_cmds_inputted(input){
 function strip(string, toStrip){
     return string.replaceAll(toStrip, "");
 }
+
+boot();
