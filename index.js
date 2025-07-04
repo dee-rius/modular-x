@@ -18,10 +18,15 @@ const expression_status_response_prefix = "Expression";
 const operation_canceled_text = "Operation cancelled";
 
 //spinner styling
-
+//stroring
 const expression_storing_spinner_text = "Storing expression";
 const expression_stored_spinner_text = "Expression stored as";
+//reading
 const expression_reading_spinner_text = "Getting expression content";
+const expression_reading_spinner_complete_text = "Rendering expression content";
+//editing
+const expression_edit_reading_old_spinner_text = "Getting old expression text";
+const expression_edit_reading_old_spinner_complete_text = "Rendering old expression content";
 
 const spinner_duration = 1000;
 
@@ -152,7 +157,7 @@ async function read_expression(){
     let expresion_to_read = await get_expression_details(false, "read");
 
     if(expresion_to_read != undefined){
-        await create_spinner("Getting expression content", "Expression content found", 500);
+        await create_spinner(expression_reading_spinner_text, expression_reading_spinner_complete_text, 500);
         let expression_content = await fs.readFile(expresion_to_read.storage_file_path, text_encoding);
 
         clack.note(expression_content, expresion_to_read.name);
@@ -162,7 +167,15 @@ async function read_expression(){
     get_user_action_choice();
 }
 async function edit_expression() {
-    
+    let expression_to_edit = await get_expression_details(true, "edit");
+
+    if(expression_to_edit != undefined){
+        await create_spinner(expression_storing_spinner_text, expression_stored_spinner_text, 500);
+        clack.note(expression_to_edit.content, expression_to_edit.name);
+    }
+
+    await sleep(500);
+    get_user_action_choice();
 }
 async function delete_expression() {
     
@@ -195,17 +208,17 @@ async function get_expression_details(get_expression_content = false, action_int
         validate: (value) => {
             switch (action_intent) {
                 //if action == read, try to access the file to see of ot exists
-                case "read" || "edit":
-                    //checks if file does'nt exist and returns an error
-                    if(!expression_storage_files.includes(`${value.trim()}.${expression_storage_file_format}`)){
-                        return "Expression does not exist";
-                    }
-                    break;
                 case "create":
                         //checks if file exists and displays a error mesagge if so
                     if(expression_storage_files.includes(`${value.trim()}.${expression_storage_file_format}`)){
                         return "Expression already exists";
+                        break;
                     }
+                    default:
+                        //checks if file does'nt exist and returns an error
+                        if(!expression_storage_files.includes(`${value.trim()}.${expression_storage_file_format}`)){
+                            return "Expression does not exist";
+                        }
             }
         }
     });
@@ -219,6 +232,8 @@ async function get_expression_details(get_expression_content = false, action_int
     //if action is edit, displays previous file content
     let full_expression_storage_file_path = `${expression_storage_directory_path}/${expresion_name.trim()}.${expression_storage_file_format}`;
     if(action_intent == "edit"){
+        create_spinner(expression_edit_reading_old_spinner_text, expression_edit_reading_old_spinner_complete_text, 500);
+        await sleep(500);
         let expression_content = await fs.readFile(full_expression_storage_file_path, text_encoding);
         clack.note(expression_content, `${expresion_name} (Old)`);
         await sleep(500);
@@ -227,12 +242,12 @@ async function get_expression_details(get_expression_content = false, action_int
     let expression_content = "";
     if(get_expression_content == true){
             expression_content = await clack.text({
-            message: `Enter expression content -> ${expresion_name} = `,
+            message: `Enter new content of ${expresion_name}`,
             placeholder: "(x2 - x1)^2 + (y2 - y1)^2",
             //if get_expression_content == false, disable = true, disabling it
         })
         if(clack.isCancel(expression_content)){
-            chalk.cancel(operation_canceled_text);
+            clack.cancel(operation_canceled_text);
             return undefined;
         }
     }
