@@ -39,6 +39,11 @@ const opening_dialog_text_prefix = "Opening expression";
 //action choices
 const available_action_choices = [
     {
+        value: "list",
+        hint: "List all stored expressions",
+        corresponding_function: list_expressions,
+    },
+    {
         value: "create",
         hint: "Create new expression",
         corresponding_function: create_expression,
@@ -117,13 +122,31 @@ async function get_user_action_choice() {
         if(available_action_choice.value == user_action_choice){
             await create_spinner(`${opening_dialog_text_prefix} [${user_action_choice}] dialogue`, `Rendering expression [${user_action_choice}] dialogue`, 1000);
             await sleep(500);
-            available_action_choice.corresponding_function();
+            await available_action_choice.corresponding_function();
         }
     }
 }
 
 
 //action functions
+async function list_expressions(){
+    try{
+        let expression_storage_files = await fs.readdir(expression_storage_directory_path, {withFileTypes: false});
+        let expression_storage_file_names = []
+        for(let expression_storage_file of expression_storage_files){
+            expression_storage_file_names.push(path.basename(expression_storage_file, `.${expression_storage_file_format}`));
+        }
+        clack.note(expression_storage_file_names.join("\n"), "Stored expressions")
+    }
+    catch{
+        clack.log.error("Expression storage directory may be missing");
+        check_if_expression_storage_path_exists();
+    }
+
+    await sleep(500);
+    get_user_action_choice();
+}
+
 async function create_expression() {
     //get_expression_details(get_expression_content = false, action_intent, display_old_content = false)
     let new_expression_details = await get_expression_details(true, "create");
@@ -189,6 +212,7 @@ async function delete_expression() {
             }
             catch{
                 clack.log.error(expression_not_found_text);
+                check_if_expression_storage_path_exists();
             }
         }
     }
@@ -206,13 +230,19 @@ async function rename_expression() {
         
         if(new_expresion_name != undefined){
             //renames the file
-            await fs.rename(expression_to_rename.storage_file_path, new_expresion_name.storage_file_path);
+            try{
+                await fs.rename(expression_to_rename.storage_file_path, new_expresion_name.storage_file_path);
 
-            await create_spinner(`Changing name from ${expression_to_rename.name} to ${new_expresion_name.name}`, expression_rename_complete_spinner_text, 500);
-            await sleep(500);
-            //displays expression content afterwards
-            let expression_content = await fs.readFile(new_expresion_name.storage_file_path, text_encoding);
-            clack.note(expression_content, new_expresion_name.name);
+                await create_spinner(`Changing name from ${expression_to_rename.name} to ${new_expresion_name.name}`, expression_rename_complete_spinner_text, 500);
+                await sleep(500);
+
+                //displays editted name and corresponding content afterwards
+                let expression_content = await fs.readFile(new_expresion_name.storage_file_path, text_encoding);
+                clack.note(expression_content, new_expresion_name.name);
+            }
+            catch{
+                clack.log.error("Error occured: expression not found")
+            }
         }
         
     }
