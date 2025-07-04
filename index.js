@@ -19,12 +19,13 @@ const expression_status_response_prefix = "Expression";
 //spinner styling
 
 const expression_storing_spinner_text = "Storing expression";
+const expression_stored_spinner_text = "Expression stored as";
 const expression_reading_spinner_text = "Getting expression content";
 
 const spinner_duration = 1000;
 
 //e.g Opening expression [ creation ] dialogue
-const opening_dialoge = "Opening expression";
+const opening_dialog_text_prefix = "Opening expression";
 
 //action choices
 const available_action_choices = [
@@ -125,7 +126,17 @@ async function get_user_action_choice() {
 
 //action functions
 async function create_expression() {
+    let new_expression_details = await get_expression_details(true, "create");
+    
+    if(new_expression_details != undefined){
+        await fs.writeFile(new_expression_details.storage_file_path, new_expression_details.content, text_encoding);
 
+        //styling purposes
+        await create_spinner(expression_storing_spinner_text, expression_stored_spinner_text, 500);
+        clack.note(new_expression_details.content, new_expression_details.name);
+    }
+
+    get_user_action_choice();
 }
 async function read_expression(){
 
@@ -158,51 +169,45 @@ async function read(expression_name) {
     }
 }
 
-async function create_or_edit(expression_name, expression_content) {
-    try {
-        let expression_storage_file_path = `${expression_storage_directory_path}/${expression_name}.${expression_storage_file_format}`;
-        await fs.writeFile(expression_storage_file_path, expression_content, text_encoding);
-    }
-    catch {
-        //fill here;
-    }
-}
-
 async function get_expression_details(get_expression_content = false, action) {
+    //gets all sroted files;
+    let expression_storage_files = [];
+    try{
+        expression_storage_files = await fs.readdir(expression_storage_directory_path);
+    }
+    catch{
+        ///thsi hapens when an error occurs
+        check_if_expression_storage_path_exists();
+    }
+
     let expresion_name = await clack.text({
         message: "Enter expression name",
         placeholder: "name",
         //validates depending on the type of action
-        validate: async (input) => {
-            switch (type) {
+        validate: (value) => {
+            switch (action) {
                 //if action == read, try to access the file to see of ot exists
-                case "read":
-                    try {
-                        //checks if file exists
-                        let full_expression_storage_file_path = `${expression_storage_directory_path}/${input}.${expression_storage_file_format}`;
-                        await fs.access(`${full_expression_storage_file_path}`);
-                    }
-                    catch {
-                        //if it doesn't exist returns error
-                        return "Please enter the name an existing expression";
+                case "read" || "edit":
+                    //checks if file does'nt exist and returns an error
+                    if(!expression_storage_files.includes(`${value}.${expression_storage_file_format}`)){
+                        return "Expression does not exist";
                     }
                 case "create":
-                    try {
                         //checks if file exists and displays a error mesagge if so
-                        let full_expression_storage_file_path = `${expression_storage_directory_path}/${input}.${expression_storage_file_format}`;
-                        await fs.access(`${full_expression_storage_file_path}`);
-
-                        return "Please enter a name that doesn't exist";
-                    }
-                    catch {
-                        //if it doesn't exist returns no error is returned;
+                    if(expression_storage_files.includes(`${value}.${expression_storage_file_format}`)){
+                        return "Expression already exists";
                     }
             }
         }
     });
+    if(clack.isCancel(expresion_name)){
+        //add spinner
+        return undefined;
+    }
+
     //if action is edit, displays previous file content
+    let full_expression_storage_file_path = `${expression_storage_directory_path}/${expresion_name}.${expression_storage_file_format}`;
     if(action == "edit"){
-        let full_expression_storage_file_path = `${expression_storage_directory_path}/${expresion_name}.${expression_storage_file_format}`;
         let expression_content = await fs.readFile(full_expression_storage_file_path, text_encoding);
         clack.note(expression_content, `${expresion_name} (Old) = `);
     }
@@ -212,8 +217,11 @@ async function get_expression_details(get_expression_content = false, action) {
         //if get_expression_content == false, disable = true, disabling it
         disabled: !get_expression_content,
     })
+    if(clack.isCancel(expression_content)){
+        return undefined;
+    }
 
-    return get_expression_content == false? {name: expresion_name}: {name: expresion_name, content: expression_content};
+    return get_expression_content == false? {name: expresion_name, storage_file_path: full_expression_storage_file_path}: {name: expresion_name, content: expression_content, storage_file_path: full_expression_storage_file_path};
 }
 
 //promise-based set timeout
