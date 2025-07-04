@@ -20,16 +20,15 @@ const operation_canceled_text = "Operation cancelled";
 //spinner styling
 //stroring
 const expression_storing_spinner_text = "Storing expression";
-const expression_stored_spinner_text = "Rendering expression content...";
+const expression_storing_spinner_complete_text = "Rendering expression content...";
 //reading
 const expression_reading_spinner_text = "Getting expression content";
 const expression_reading_spinner_complete_text = "Rendering expression content...";
 //editing
 const expression_edit_reading_old_spinner_text = "Getting expression text";
 const expression_edit_reading_old_spinner_complete_text = "Rendering expression content...";
-//deleting
-const expression_deleting_spinner_text = `${chalk.red("Permanently")} removing the expression`;
-const expression_deleting_spinner_complete_text = `Expression ${chalk.red("permanently")} removed`;
+//renaming
+const expression_rename_complete_spinner_text = "Expression renamed";
 
 const expression_not_found_text = "Expression not found";
 
@@ -133,7 +132,7 @@ async function create_expression() {
         await fs.writeFile(new_expression_details.storage_file_path, new_expression_details.content, text_encoding);
 
         //styling purposes
-        await create_spinner(expression_storing_spinner_text, expression_stored_spinner_text, 500);
+        await create_spinner(expression_storing_spinner_text, expression_storing_spinner_complete_text, 500);
         clack.note(new_expression_details.content, new_expression_details.name);
     }
 
@@ -162,7 +161,7 @@ async function edit_expression() {
         //update file-content
         await fs.writeFile(expression_to_edit.storage_file_path, expression_to_edit.content, text_encoding);
 
-        await create_spinner(expression_storing_spinner_text, expression_stored_spinner_text, 500);
+        await create_spinner(expression_storing_spinner_text, expression_storing_spinner_complete_text, 500);
         clack.note(expression_to_edit.content, expression_to_edit.name);
     }
 
@@ -199,7 +198,27 @@ async function delete_expression() {
 }
 
 async function rename_expression() {
-    
+    let expression_to_rename = await get_expression_details(false, "rename", false, "Enter (old) expression name");
+
+    if(expression_to_rename != undefined){
+        //get the new name for the expression
+        let new_expresion_name = await get_expression_details(false, "get_new_name_for_rename", false, "Enter (new) expression name");
+        
+        if(new_expresion_name != undefined){
+            //renames the file
+            await fs.rename(expression_to_rename.storage_file_path, new_expresion_name.storage_file_path);
+
+            await create_spinner(`Changing name from ${expression_to_rename.name} to ${new_expresion_name.name}`, expression_rename_complete_spinner_text, 500);
+            await sleep(500);
+            //displays expression content afterwards
+            let expression_content = await fs.readFile(new_expresion_name.storage_file_path, text_encoding);
+            clack.note(expression_content, new_expresion_name.name);
+        }
+        
+    }
+
+    await sleep(500);
+    get_user_action_choice();
 }
 async function solve_expression(){
 
@@ -208,7 +227,7 @@ async function solve_expression(){
 
 //utility functions
 
-async function get_expression_details(get_expression_content = false, action_intent, display_old_content = false) {
+async function get_expression_details(get_expression_content, action_intent, display_old_content, expression_name_propmt_message = "Enter expression name") {
     //gets all sroted files;
     let expression_storage_files = [];
     try{
@@ -222,11 +241,11 @@ async function get_expression_details(get_expression_content = false, action_int
     let expression_content_prompt_placeholder = "(x2 - x1)^2 + (y2 - y1)^2";
     
     let expresion_name = await clack.text({
-        message: "Enter expression name",
+        message: expression_name_propmt_message,
         placeholder: "name",
         //validates depending on the type of action
         validate: (value) => {
-            if (action_intent == "create") {
+            if (action_intent == "create" ||action_intent == "get_new_name_for_rename") {
                 
                 //checks if file exists and displays a error mesagge if so
                 if(expression_storage_files.includes(`${value.trim()}.${expression_storage_file_format}`)){
