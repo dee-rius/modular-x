@@ -30,27 +30,33 @@ const opening_dialoge = "Opening expression";
 const available_action_choices = [
     {
         value: "create",
-        hint: "Create new expression"
+        hint: "Create new expression",
+        corresponding_function: create_expression,
     },
     {
         value: "edit",
-        hint: "Edit existing expression"
+        hint: "Edit existing expression",
+        corresponding_function: edit_expression,
     },
     {
         value: "read",
         hint: "Read existing expression",
+        corresponding_function: read_expression,
     },
     {
         value: "solve",
-        hint: "Solve existing expression"
+        hint: "Solve existing expression",
+        corresponding_function: solve_expression,
     },
     {
         value: "delete",
-        hint: "Delete existing expression"
+        hint: "Delete existing expression",
+        corresponding_function: delete_expression,
     },
     {
         value: "rename",
-        hint: "Rename existing expression"
+        hint: "Rename existing expression",
+        corresponding_function: rename_expression,
     },
 ]
 
@@ -88,13 +94,18 @@ async function get_user_action_choice() {
     let user_action_choice_initial_value = "";
     await setInitialValue();
 
-    const user_action_choice = clack.select({
+    const user_action_choice = await clack.select({
         message: "Select desired action:",
         placeholder: "Ctrl + C to quit",
         initialValue: user_action_choice_initial_value,
         options: available_action_choices,
     })
 
+    for(let available_action_choice of available_action_choices){
+        if(available_action_choice.value == user_action_choice){
+            available_action_choice.corresponding_function();
+        }
+    }
 
 
     async function setInitialValue() {
@@ -110,6 +121,28 @@ async function get_user_action_choice() {
         }
     }
 }
+
+
+//action functions
+async function create_expression() {
+
+}
+async function read_expression(){
+
+}
+async function edit_expression() {
+    
+}
+async function delete_expression() {
+    
+}
+async function rename_expression() {
+    
+}
+async function solve_expression(){
+
+}
+
 
 //utility functions
 
@@ -179,6 +212,8 @@ async function get_expression_details(get_expression_content = false, action) {
         //if get_expression_content == false, disable = true, disabling it
         disabled: !get_expression_content,
     })
+
+    return get_expression_content == false? {name: expresion_name}: {name: expresion_name, content: expression_content};
 }
 
 //promise-based set timeout
