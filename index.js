@@ -20,18 +20,18 @@ const operation_canceled_text = "Operation cancelled";
 //spinner styling
 //stroring
 const expression_storing_spinner_text = "Storing expression";
-const expression_stored_spinner_text = "Expression stored as";
+const expression_stored_spinner_text = "Rendering expression content...";
 //reading
 const expression_reading_spinner_text = "Getting expression content";
-const expression_reading_spinner_complete_text = "Rendering expression content";
+const expression_reading_spinner_complete_text = "Rendering expression content...";
 //editing
 const expression_edit_reading_old_spinner_text = "Getting expression text";
-const expression_edit_reading_old_spinner_complete_text = "Rendering expression content";
+const expression_edit_reading_old_spinner_complete_text = "Rendering expression content...";
 //deleting
 const expression_deleting_spinner_text = `${chalk.red("Permanently")} removing the expression`;
 const expression_deleting_spinner_complete_text = `Expression ${chalk.red("permanently")} removed`;
 
-const expresion_not_found_text = chalk.red("Expression not found");
+const expression_not_found_text = "Expression not found";
 
 
 //e.g Opening expression [ creation ] dialogue
@@ -60,14 +60,14 @@ const available_action_choices = [
         corresponding_function: solve_expression,
     },
     {
-        value: "delete",
-        hint: "Delete existing expression",
-        corresponding_function: delete_expression,
-    },
-    {
         value: "rename",
         hint: "Rename existing expression",
         corresponding_function: rename_expression,
+    },
+    {
+        value: chalk.red("delete"),
+        hint: "Delete existing expression",
+        corresponding_function: delete_expression,
     },
 ]
 
@@ -116,7 +116,7 @@ async function get_user_action_choice() {
 
     for(let available_action_choice of available_action_choices){
         if(available_action_choice.value == user_action_choice){
-            await create_spinner(`${opening_dialog_text_prefix} [${user_action_choice}] dialogue`, `Expression [${user_action_choice}] dialogue`, 1000);
+            await create_spinner(`${opening_dialog_text_prefix} [${user_action_choice}] dialogue`, `Rendering expression [${user_action_choice}] dialogue`, 1000);
             await sleep(500);
             available_action_choice.corresponding_function();
         }
@@ -177,7 +177,7 @@ async function delete_expression() {
         //check if the user really wants delete it
 
         let delete_choice = await clack.confirm({
-            message: `${expression_to_delete.name} will be permanently deleted, proceed?`,
+            message: `${expression_to_delete.name} will be ${chalk.red("permanently")} deleted, proceed?`,
             initialValue: false,
         })
 
@@ -186,10 +186,10 @@ async function delete_expression() {
                 await fs.access(expression_to_delete.storage_file_path);
                 await fs.unlink(expression_to_delete.storage_file_path);
 
-                await create_spinner(expression_deleting_spinner_text, expression_deleting_spinner_complete_text, 750);
+                await create_spinner(`${chalk.red("Permanently")} removing ${expression_to_delete.name}` , `${chalk.red("Permanently")} removed: ${expression_to_delete.name}`, 750);
             }
             catch{
-                clack.log.error(expresion_not_found_text);
+                clack.log.error(expression_not_found_text);
             }
         }
     }
@@ -226,19 +226,18 @@ async function get_expression_details(get_expression_content = false, action_int
         placeholder: "name",
         //validates depending on the type of action
         validate: (value) => {
-            switch (action_intent) {
-                //if action == read, try to access the file to see of ot exists
-                case "create":
-                        //checks if file exists and displays a error mesagge if so
-                    if(expression_storage_files.includes(`${value.trim()}.${expression_storage_file_format}`)){
-                        return "Expression already exists";
-                        break;
-                    }
-                    default:
-                        //checks if file does'nt exist and returns an error
-                        if(!expression_storage_files.includes(`${value.trim()}.${expression_storage_file_format}`)){
-                            return expresion_not_found_text;
-                        }
+            if (action_intent == "create") {
+                
+                //checks if file exists and displays a error mesagge if so
+                if(expression_storage_files.includes(`${value.trim()}.${expression_storage_file_format}`)){
+                    return "Expression already exists";
+                }
+            }
+            else{
+                 //checks if file does'nt exist and returns an error
+                 if(!expression_storage_files.includes(`${value.trim()}.${expression_storage_file_format}`)){
+                    return expression_not_found_text;
+                }
             }
         }
     });
