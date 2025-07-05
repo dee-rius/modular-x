@@ -450,18 +450,28 @@ async function substitue_the_variables(expression_content, expression_to_solve, 
 
 //solves the expression, and shows the results 
 async function solve_the_expression(expression_content){
+    let fix_operator_errors = {
+        "++": "+",
+        "--": "-",
+        "+-": "-",
+        "-+": "-",
+        "(+": "("
+    };
+
     let result = 0;
-    try{
-        result = eval(expression_content);;
-    }
-    catch(error){
-        clack.log.error(`${error}`);
-        check_if_expression_storage_path_exists()
-        return;
-    }
+    let processed_expression = expression_content;
+
+        //prevent potential operator errors
+        let operator_errors = Object.keys(fix_operator_errors);
+        for(let operator_error of operator_errors){
+            processed_expression = processed_expression.replaceAll(operator_error, fix_operator_errors[operator_error]);
+        }
+
+        //solves expression
+        result = eval(processed_expression);;
 
     await create_spinner(expression_solving_spinner_text, expression_solving_spinner_complete_text, 500);
-    clack.note(expression_content, `Output: ${String(result)}`);
+    clack.note(processed_expression, `Output: ${String(result)}`);
 
     await create_spinner(busy_spinner_text, busy_spinner_complete_text, 1000);
     check_if_expression_storage_path_exists();
@@ -474,7 +484,7 @@ async function get_value_to_substitute_variable_with(variable) {
     let number_to_substitute_variable_with = await clack.text({
         message: `Enter number to substitute ${variable} with:`,
         validate: (input) => {
-            if(isNaN(input)){
+            if(isNaN(input) && !input.includes("(", ")")){
                 return "Please input a valid number";
             }
         }
@@ -483,6 +493,21 @@ async function get_value_to_substitute_variable_with(variable) {
     if(clack.isCancel(number_to_substitute_variable_with)){
         clack.cancel(operation_canceled_text);
         return undefined;
+    }
+
+    let fix_operator_errors = {
+        "++": "+",
+        "--": "-",
+        "+-": "-",
+        "-+": "-",
+        "(+": "("
+    };
+
+    let processed_input = number_to_substitute_variable_with;
+    //prevent potential operator errors
+    let operator_errors = Object.keys(fix_operator_errors);
+    for(let operator_error of operator_errors){
+        processed_input = processed_input.replaceAll(operator_error, fix_operator_errors[operator_error]);
     }
 
     return number_to_substitute_variable_with;
