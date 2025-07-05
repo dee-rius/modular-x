@@ -4,7 +4,6 @@ import * as clack from "@clack/prompts";
 import path from "path";
 import chalk from "chalk";
 import fs from "fs/promises";
-import { networkInterfaces } from "os";
 
 
 const text_encoding = "utf-8";
@@ -36,11 +35,11 @@ const expression_rename_complete_spinner_text = "Expression renamed";
 const replacing_special_characters_spinner_text = "Encrypting special characters";
 const replacing_special_characters_spinner_complete_text = "Rendering encrypted expression...";
 
-const replacing_variables_spinner_text = "Substituting variables";
-const replacing_variables_spinner_complete_text = "All variables substituted";
+const substituting_variables_spinner_text = "Substituting variables";
+const substituting_variables_spinner_complete_text = "All variables substituted";
 
-const expression_solving_spinner_text = "Evaluating expression";
-const expression_solving_spinner_complete_text = "Expression successfully evaluated";
+const expression_solving_spinner_text = "Computing expression";
+const expression_solving_spinner_complete_text = "Rendering results...";
 
 const expression_not_found_text = "Expression not found";
 
@@ -85,7 +84,7 @@ const available_action_choices = [
         hint: "Delete existing expression",
         corresponding_function: delete_expression,
     },
-]
+];
 
 
 //func to get user action
@@ -99,9 +98,7 @@ async function boot() {
     await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
 
     //displays important text
-    clack.log.warn(set_text_colour("Note: Ctrl + C to quit/cancel", "warn"))
-    await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
-    check_if_expression_storage_path_exists()
+    check_if_expression_storage_path_exists();
 }
 
 async function check_if_expression_storage_path_exists() {
@@ -118,12 +115,14 @@ async function check_if_expression_storage_path_exists() {
 }
 
 async function get_user_action_choice() {
+    clack.log.warn(set_text_colour("Note: Ctrl + C to quit/cancel", "warn"));
+    await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
 
     const user_action_choice = await clack.select({
         message: "Select desired action:",
         placeholder: "Ctrl + C to quit",
         options: available_action_choices,
-    })
+    });
 
     if (clack.isCancel(user_action_choice)) {
         clack.cancel(operation_canceled_text);
@@ -132,7 +131,7 @@ async function get_user_action_choice() {
 
     for (let available_action_choice of available_action_choices) {
         if (available_action_choice.value == user_action_choice) {
-            await create_spinner(`${opening_dialog_text_prefix} [${user_action_choice}] dialogue`, `Rendering expression [${user_action_choice}] dialogue`, 1000);
+            await create_spinner(`${opening_dialog_text_prefix} [${user_action_choice}] dialogue`, `Rendering expression [${user_action_choice}] dialogue`, 750);
             await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
             await available_action_choice.corresponding_function();
         }
@@ -144,11 +143,11 @@ async function get_user_action_choice() {
 async function list_expressions() {
     try {
         let expression_storage_files = await fs.readdir(expression_storage_directory_path, { withFileTypes: false });
-        let expression_storage_file_names = []
+        let expression_storage_file_names = [];
         for (let expression_storage_file of expression_storage_files) {
             expression_storage_file_names.push(path.basename(expression_storage_file, `.${expression_storage_file_format}`));
         }
-        clack.note(expression_storage_file_names.join("\n"), "Stored expressions")
+        clack.note(expression_storage_file_names.join("\n"), "Stored expressions");
     }
     catch {
         clack.log.error("Expression storage directory may be missing");
@@ -156,7 +155,7 @@ async function list_expressions() {
     }
 
     await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
-    get_user_action_choice();
+    check_if_expression_storage_path_exists()
 }
 
 async function create_expression() {
@@ -172,7 +171,7 @@ async function create_expression() {
     }
 
     await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
-    get_user_action_choice();
+    check_if_expression_storage_path_exists()
 }
 async function read_expression() {
     //get_expression_details(get_expression_content = false, action_intent, display_old_content = false)
@@ -186,7 +185,7 @@ async function read_expression() {
     }
 
     await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
-    get_user_action_choice();
+    check_if_expression_storage_path_exists()
 }
 async function edit_expression() {
     //get_expression_details(get_expression_content = false, action_intent, display_old_content = false)
@@ -201,7 +200,7 @@ async function edit_expression() {
     }
 
     await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
-    get_user_action_choice();
+    check_if_expression_storage_path_exists()
 }
 async function delete_expression() {
     //get_expression_details(get_expression_content = false, action_intent, display_old_content = false)
@@ -213,7 +212,7 @@ async function delete_expression() {
         let delete_choice = await clack.confirm({
             message: `${expression_to_delete.name} will be ${chalk.red("permanently")} deleted, proceed?`,
             initialValue: false,
-        })
+        });
 
         if (delete_choice === true) {
             try {
@@ -254,14 +253,14 @@ async function rename_expression() {
                 clack.note(expression_content, new_expresion_name.name);
             }
             catch {
-                clack.log.error(expression_not_found_text)
+                clack.log.error(expression_not_found_text);
             }
         }
 
     }
 
     await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
-    get_user_action_choice();
+    check_if_expression_storage_path_exists();
 }
 
 
@@ -271,13 +270,17 @@ async function rename_expression() {
 //gets name of equation to solve
 async function get_name_of_equation_to_solve(){
 
-    let expression_to_solve = await get_expression_details(false, "solve", true);
+    let expression_to_solve = await get_expression_details(false, "get_name_of_expression_to_solve", false);
     try{
        
         if(expression_to_solve != undefined){
              //get expression content
             let expression_content = await fs.readFile(expression_to_solve.storage_file_path, text_encoding);
             await process_special_characters_and_basic_replacements(expression_content, expression_to_solve);
+        }
+        else{
+            //checks if everything is okay before running get user action
+            check_if_expression_storage_path_exists();
         }
 
     }
@@ -293,21 +296,22 @@ async function process_special_characters_and_basic_replacements(expression_cont
     let to_replace = {
         "^": "**",
         "_": "**1/",
-    }
+    };
 
-    let expression_content_split_by_character = expression_content.split("");
+    //ignores spaces
+    let expression_content_split_by_character = expression_content.split("").filter(char => char != " ");
 
     for(let i = 0; i < expression_content_split_by_character.length - 1; i++){
         let this_character = expression_content_split_by_character[i];
         let next_character = expression_content_split_by_character[i + 1];
 
-        //checks if this_character isn't a letter or number. If so, skips to the next iteration
-        if(/^[a-zA-Z]+$/.test(this_character) === false || isNaN(this_character)){
+        //checks if this_character isn't a letter or number or close bracket. If so, skips to the next iteration
+        if(/^[a-zA-Z]+$/.test(this_character) === false && isNaN(this_character) === true && this_character != ")"){
             continue;
         }
         //checks if the nex number is an open bracket or a letter
-        if(next_character == "(" || /^[a-zA-Z]+$/.test(this_character)){
-            //if so, inserts * bettween them (e.g., 2x -> 2*x or x(y - 2) -> x*(y-2))
+        if(next_character == "(" || /^[a-zA-Z]+$/.test(next_character) === true){
+            //if so, inserts * between them (e.g., 2x -> 2*x or x(y - 2) -> x*(y-2))
             to_replace[`${this_character}${next_character}`] = `${this_character}*${next_character}`;
         }
     }
@@ -316,15 +320,140 @@ async function process_special_characters_and_basic_replacements(expression_cont
         expression_content = expression_content.replaceAll(chars_to_replace, to_replace[chars_to_replace]);
     }
 
-    create_spinner(replacing_special_characters_spinner_text, replacing_special_characters_spinner_complete_text, 500);
+    await create_spinner(replacing_special_characters_spinner_text, replacing_special_characters_spinner_complete_text, 250);
     clack.note(expression_content, expression_to_solve.name);
-    await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+    await create_spinner(busy_spinner_text, busy_spinner_complete_text, 250);
+
+
+    find_and_store_variables(expression_content, expression_to_solve);
 }
 
-//func loops through the list and finds and stores variables in a an array, and passes that down
-//function gets the user to input input replacements for the variables, and stores the variables a keys and the users values as values of the keys in the object and passes that down
-//function does actual replacing of variables and solves the expression, and shows the results with clack.note using the output as the header and the equaition as the footer
+//func loops through the expression and finds and stores variables in a an array, and passes that down
+async function find_and_store_variables(expression_content, expression_to_solve){
+    //ignores spaces
+    let expression_content_split_by_character = expression_content.split("").filter(char => char != " ");
+    let variables = [];
 
+    for(let i = 0; i < expression_content_split_by_character.length - 1; i++){
+
+        let this_character = expression_content_split_by_character[i];
+        let next_character = expression_content_split_by_character[i + 1];
+        //if this character is not a letter, skip this iteration and move to the next one (character)
+        if(/^[a-zA-Z]+$/.test(this_character) === false){
+            continue;
+        }
+
+        //if the next charcater isn't a number, only count the letter as a variable (also doesn't add the variable if it is already included)
+        if(isNaN(next_character)){
+
+            if(!variables.includes(this_character)){
+                variables.push(this_character);
+            }
+            //skips rest of the code to the next iteration
+            continue;
+        }
+
+        //if this character is a letter and the next character is a number (e.g., x2)
+        //the next character is considered an id for the variable
+        let full_variable = `${this_character}${next_character}`;
+
+        //finds the rest of the id (e.g., x234 -> x2 is found first, so it continues to see if there is more (34))
+        for(let j = i + 2; j < expression_content_split_by_character.length - 1; j++){
+
+            //checks if the character is not a number and considers it the end of the id, stopping the loop
+            if(isNaN(expression_content_split_by_character[j])){
+                break;
+            }
+
+            //if it is a number, it is considered part of the id
+            full_variable += expression_content_split_by_character[j];
+        }
+
+        //if it is not already in the array, add it to the array of variables
+        if(!variables.includes(full_variable)){
+            variables.push(full_variable);
+        }
+    }
+
+    await get_user_to_replace_variables(expression_content, expression_to_solve, variables);
+}
+
+//function gets the user to input input replacements for the variables, and stores the variables a keys and the users values as values of the keys in the object and passes that down
+async function get_user_to_replace_variables(expression_content, expression_to_solve, variables){
+    let variables_and_substitutes = {};
+
+    for(let variable of variables){
+        //get value to substitue the variable with
+        let substitute_with = await get_value_to_substitute_variable_with(variable);
+
+        //if user cancels
+        if(substitute_with === undefined){
+            //check if the storage path exists before proceeding to get user action choice
+            check_if_expression_storage_path_exists();
+            return;
+        }
+
+        //store the variable and its substitute
+        variables_and_substitutes[variable] = substitute_with;
+
+        await create_spinner(busy_spinner_text, busy_spinner_complete_text, 250);
+    }
+
+    substitue_the_variables(expression_content, expression_to_solve, variables_and_substitutes)
+}
+
+//function does actual replacing of variables 
+async function substitue_the_variables(expression_content, expression_to_solve, variables_and_substitues){
+    //extracts variables from
+    let variables = Object.keys(variables_and_substitues);
+
+    //sorts the variables by length in descending order to bring variables with ids in first place
+    variables.sort((a,b) => b.length - a.length);
+
+
+    //because of preceeding code, variables with longer ids are replaced first
+    for(let variable of variables){
+        expression_content = expression_content.replaceAll(variable, variables_and_substitues[variable]);
+    }
+
+    await create_spinner(substituting_variables_spinner_text, substituting_variables_spinner_complete_text, 250);
+    clack.note(expression_content, expression_to_solve.name);
+
+    solve_the_expression(expression_content);
+}
+
+
+//solves the expression, and shows the results 
+async function solve_the_expression(expression_content){
+    let result = eval(expression_content);
+
+    await create_spinner(expression_solving_spinner_text, expression_solving_spinner_complete_text, 500);
+    clack.note(expression_content, `Output: ${String(result)}`);
+
+    await create_spinner(busy_spinner_text, busy_spinner_complete_text, 1000);
+    check_if_expression_storage_path_exists();
+}
+
+
+
+//this funciton is used when getting number to replace variable with
+async function get_value_to_substitute_variable_with(variable) {
+    let number_to_substitute_variable_with = await clack.text({
+        message: `Enter number to substitute ${variable} with:`,
+        validate: (input) => {
+            if(isNaN(input)){
+                return "Please input a valid number";
+            }
+        }
+    });
+
+    if(clack.isCancel(number_to_substitute_variable_with)){
+        clack.cancel(operation_canceled_text);
+        return undefined;
+    }
+
+    return number_to_substitute_variable_with;
+}
 
 
 //utility functions
@@ -411,16 +540,12 @@ function set_text_colour(string, type = "default") {
     switch (type) {
         case "action_keyword":
             return chalk.blue(string);
-            break;
         case "error":
             return chalk.red(string);
-            break;
         case "success":
             return chalk.green(string);
-            break;
         case "warn":
             return chalk.yellow(string);
-            break;
         case other:
             return string;
     }
