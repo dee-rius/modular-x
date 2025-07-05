@@ -60,11 +60,6 @@ const available_action_choices = [
         corresponding_function: create_expression,
     },
     {
-        value: "edit",
-        hint: "Edit existing expression",
-        corresponding_function: edit_expression,
-    },
-    {
         value: "read",
         hint: "Read existing expression",
         corresponding_function: read_expression,
@@ -73,6 +68,11 @@ const available_action_choices = [
         value: "solve",
         hint: "Solve existing expression",
         corresponding_function: get_name_of_equation_to_solve,
+    },
+    {
+        value: "edit",
+        hint: "Edit existing expression",
+        corresponding_function: edit_expression,
     },
     {
         value: "rename",
