@@ -293,10 +293,11 @@ async function get_name_of_equation_to_solve(){
 
 //func to process equation for bidmas, does actual replacing and passses down the new expression
 async function process_special_characters_and_basic_replacements(expression_content, expression_to_solve){
-    let to_replace = {
-        "^": "**",
-        "_": "**1/",
-    };
+    let special_character_to_replace = {
+        "^": "**(",
+        "_": "**(1/",
+    }
+    let to_replace = {};
 
     //ignores spaces
     let expression_content_split_by_character = expression_content.split("").filter(char => char != " ");
@@ -304,6 +305,27 @@ async function process_special_characters_and_basic_replacements(expression_cont
     for(let i = 0; i < expression_content_split_by_character.length - 1; i++){
         let this_character = expression_content_split_by_character[i];
         let next_character = expression_content_split_by_character[i + 1];
+
+        if(special_character_to_replace[this_character] !== undefined && !isNaN(next_character)){
+            let replace_special = `${this_character}${next_character}`
+            let to_replace_with = `${special_character_to_replace[this_character]}${next_character}`
+
+            //finds the rest of the digits after the special character
+            for(let j = i + 2; j < expression_content_split_by_character.length - 1; j++){
+
+                //checks if the character is not a number and considers it as not part of the number after the special character, stopping the loop
+                if(isNaN(expression_content_split_by_character[j])){
+                    break;
+                }
+    
+                //if it is a number, it is considered part of the number after the special character
+                replace_special += expression_content_split_by_character[j];
+                to_replace_with += expression_content_split_by_character[j];
+            }
+
+            //if you look at the special chatacter to replace object, you will find that bracket is opened, it is now closed
+            to_replace[replace_special] = `${to_replace_with})`
+        }
 
         //checks if this_character isn't a letter or number or close bracket. If so, skips to the next iteration
         if(/^[a-zA-Z]+$/.test(this_character) === false && isNaN(this_character) === true && this_character != ")"){
@@ -338,6 +360,9 @@ async function find_and_store_variables(expression_content, expression_to_solve)
 
         let this_character = expression_content_split_by_character[i];
         let next_character = expression_content_split_by_character[i + 1];
+
+        if(this_character)
+
         //if this character is not a letter, skip this iteration and move to the next one (character)
         if(/^[a-zA-Z]+$/.test(this_character) === false){
             continue;
@@ -425,7 +450,15 @@ async function substitue_the_variables(expression_content, expression_to_solve, 
 
 //solves the expression, and shows the results 
 async function solve_the_expression(expression_content){
-    let result = eval(expression_content);
+    let result = 0;
+    try{
+        result = eval(expression_content);;
+    }
+    catch(error){
+        clack.log.error(`${error}`);
+        check_if_expression_storage_path_exists()
+        return;
+    }
 
     await create_spinner(expression_solving_spinner_text, expression_solving_spinner_complete_text, 500);
     clack.note(expression_content, `Output: ${String(result)}`);
