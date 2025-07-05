@@ -95,7 +95,7 @@ async function boot() {
     //creates a spinner (for styling purposes)
     await create_spinner("Booting", "Boot complete", 1000);
 
-    await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+    await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
 
     //displays important text
     check_if_expression_storage_path_exists();
@@ -116,7 +116,7 @@ async function check_if_expression_storage_path_exists() {
 
 async function get_user_action_choice() {
     clack.log.warn(set_text_colour("Note: Ctrl + C to quit/cancel", "warn"));
-    await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+    await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
 
     const user_action_choice = await clack.select({
         message: "Select desired action:",
@@ -132,7 +132,7 @@ async function get_user_action_choice() {
     for (let available_action_choice of available_action_choices) {
         if (available_action_choice.value == user_action_choice) {
             await create_spinner(`${opening_dialog_text_prefix} [${user_action_choice}] dialogue`, `Rendering expression [${user_action_choice}] dialogue`, 750);
-            await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+            await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
             await available_action_choice.corresponding_function();
         }
     }
@@ -154,7 +154,7 @@ async function list_expressions() {
         check_if_expression_storage_path_exists();
     }
 
-    await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+    await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
     check_if_expression_storage_path_exists()
 }
 
@@ -170,7 +170,7 @@ async function create_expression() {
         clack.note(new_expression_details.content, new_expression_details.name);
     }
 
-    await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+    await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
     check_if_expression_storage_path_exists()
 }
 async function read_expression() {
@@ -184,7 +184,7 @@ async function read_expression() {
         clack.note(expression_content, expresion_to_read.name);
     }
 
-    await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+    await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
     check_if_expression_storage_path_exists()
 }
 async function edit_expression() {
@@ -199,7 +199,7 @@ async function edit_expression() {
         clack.note(expression_to_edit.content, expression_to_edit.name);
     }
 
-    await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+    await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
     check_if_expression_storage_path_exists()
 }
 async function delete_expression() {
@@ -228,7 +228,7 @@ async function delete_expression() {
         }
     }
 
-    await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+    await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
     //check if teh diresctory exists before moving on to collect user action
     check_if_expression_storage_path_exists()
 }
@@ -246,7 +246,7 @@ async function rename_expression() {
                 await fs.rename(expression_to_rename.storage_file_path, new_expresion_name.storage_file_path);
 
                 await create_spinner(`Changing name from ${expression_to_rename.name} to ${new_expresion_name.name}`, expression_rename_complete_spinner_text, 500);
-                await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+                await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
 
                 //displays editted name and corresponding content afterwards
                 let expression_content = await fs.readFile(new_expresion_name.storage_file_path, text_encoding);
@@ -259,7 +259,7 @@ async function rename_expression() {
 
     }
 
-    await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+    await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
     check_if_expression_storage_path_exists();
 }
 
@@ -268,56 +268,78 @@ async function rename_expression() {
 //solving stages (all functions pass down the expression name) -> split into multiple functions because of the single responsibility rule
 
 //gets name of equation to solve
-async function get_name_of_equation_to_solve(){
+async function get_name_of_equation_to_solve() {
 
     let expression_to_solve = await get_expression_details(false, "get_name_of_expression_to_solve", false);
-    try{
-       
-        if(expression_to_solve != undefined){
-             //get expression content
+    try {
+
+        if (expression_to_solve != undefined) {
+            //get expression content
             let expression_content = await fs.readFile(expression_to_solve.storage_file_path, text_encoding);
-            await process_special_characters_and_basic_replacements(expression_content, expression_to_solve);
+            special_character_encryption(expression_content, expression_to_solve);
         }
-        else{
+        else {
             //checks if everything is okay before running get user action
             check_if_expression_storage_path_exists();
         }
 
     }
-    catch (error){
+    catch (error) {
         //if not log expression not found
         clack.log.error(error);
         check_if_expression_storage_path_exists();
     }
 }
 
-//func to process equation for bidmas, does actual replacing and passses down the new expression
-async function process_special_characters_and_basic_replacements(expression_content, expression_to_solve){
+//exncryption of special charcaters and advanced functions (this is to prevent messing up variable finding process)
+async function special_character_encryption(expression_content, expression_to_solve) {
     let special_character_to_replace = {
         "^": "**(",
         "_": "**(1/",
     }
-    let to_replace = {};
+    let to_replace = {
+        ":pi": "~()",
+
+        ":sin": "@",
+        ":sinh": "@?",
+        ":asin": "@'",
+        ":asinh": "@'?",
+
+        ":cos": "#",
+        ":cosh": "#?",
+        ":acos": "#'",
+        ":acosh": "#'?",
+
+        ":tan": "&",
+        ":tanh": "&?",
+        ":atan": "&'",
+        ":atanh": "&'?",
+
+        ":log": "|",
+        ":logt": "||",
+
+        ":fact": "!",
+    };
 
     //ignores spaces
     let expression_content_split_by_character = expression_content.split("").filter(char => char != " ");
 
-    for(let i = 0; i < expression_content_split_by_character.length - 1; i++){
+    for (let i = 0; i < expression_content_split_by_character.length - 1; i++) {
         let this_character = expression_content_split_by_character[i];
         let next_character = expression_content_split_by_character[i + 1];
 
-        if(special_character_to_replace[this_character] !== undefined && !isNaN(next_character)){
+        if (special_character_to_replace[this_character] !== undefined && !isNaN(next_character)) {
             let replace_special = `${this_character}${next_character}`
             let to_replace_with = `${special_character_to_replace[this_character]}${next_character}`
 
             //finds the rest of the digits after the special character
-            for(let j = i + 2; j < expression_content_split_by_character.length - 1; j++){
+            for (let j = i + 2; j < expression_content_split_by_character.length - 1; j++) {
 
                 //checks if the character is not a number and considers it as not part of the number after the special character, stopping the loop
-                if(isNaN(expression_content_split_by_character[j])){
+                if (isNaN(expression_content_split_by_character[j])) {
                     break;
                 }
-    
+
                 //if it is a number, it is considered part of the number after the special character
                 replace_special += expression_content_split_by_character[j];
                 to_replace_with += expression_content_split_by_character[j];
@@ -325,53 +347,79 @@ async function process_special_characters_and_basic_replacements(expression_cont
 
             //if you look at the special chatacter to replace object, you will find that bracket is opened, it is now closed
             to_replace[replace_special] = `${to_replace_with})`
+
         }
 
+    }
+
+    for (let chars_to_replace in to_replace) {
+        expression_content = expression_content.replaceAll(chars_to_replace, to_replace[chars_to_replace]);
+    }
+
+    perform_basic_replacements(expression_content, expression_to_solve);
+}
+
+//func to process equation for bidmas and encrypts special characters, does actual replacing and passses down the new expression
+async function perform_basic_replacements(expression_content, expression_to_solve) {
+    let special_character_encryption_prefixes = ["@", "#", "~", "&", "|", "!"];
+    let to_replace = {};
+
+    //ignores spaces
+    let expression_content_split_by_character = expression_content.split("").filter(char => char != " ");
+
+    for (let i = 0; i < expression_content_split_by_character.length - 1; i++) {
+        let this_character = expression_content_split_by_character[i];
+        let next_character = expression_content_split_by_character[i + 1];
+
+
         //checks if this_character isn't a letter or number or close bracket. If so, skips to the next iteration
-        if(/^[a-zA-Z]+$/.test(this_character) === false && isNaN(this_character) === true && this_character != ")"){
+        if (/^[a-zA-Z]+$/.test(this_character) === false && isNaN(this_character) === true && this_character != ")") {
             continue;
         }
         //checks if the nex number is an open bracket or a letter
-        if(next_character == "(" || /^[a-zA-Z]+$/.test(next_character) === true){
-            //if so, inserts * between them (e.g., 2x -> 2*x or x(y - 2) -> x*(y-2))
+        if (next_character == "(" || /^[a-zA-Z]+$/.test(next_character) === true || special_character_encryption_prefixes.includes(next_character)) {
+            //if so, inserts * between them (e.g., 2x -> 2*x, x(y - 2) -> x*(y-2)), 2:pi(x) -> 2~(x) -> 2 * ~(x);
             to_replace[`${this_character}${next_character}`] = `${this_character}*${next_character}`;
         }
     }
 
-    for(let chars_to_replace in to_replace){
+    for (let chars_to_replace in to_replace) {
         expression_content = expression_content.replaceAll(chars_to_replace, to_replace[chars_to_replace]);
     }
 
+
+    //styling purposes
     await create_spinner(replacing_special_characters_spinner_text, replacing_special_characters_spinner_complete_text, 250);
     clack.note(expression_content, expression_to_solve.name);
     await create_spinner(busy_spinner_text, busy_spinner_complete_text, 250);
 
-
     find_and_store_variables(expression_content, expression_to_solve);
 }
 
+
+
 //func loops through the expression and finds and stores variables in a an array, and passes that down
-async function find_and_store_variables(expression_content, expression_to_solve){
+async function find_and_store_variables(expression_content, expression_to_solve) {
     //ignores spaces
     let expression_content_split_by_character = expression_content.split("").filter(char => char != " ");
     let variables = [];
 
-    for(let i = 0; i < expression_content_split_by_character.length - 1; i++){
+    for (let i = 0; i < expression_content_split_by_character.length; i++) {
 
         let this_character = expression_content_split_by_character[i];
         let next_character = expression_content_split_by_character[i + 1];
 
-        if(this_character)
+        if (this_character)
 
-        //if this character is not a letter, skip this iteration and move to the next one (character)
-        if(/^[a-zA-Z]+$/.test(this_character) === false){
-            continue;
-        }
+            //if this character is not a letter, skip this iteration and move to the next one (character)
+            if (/^[a-zA-Z]+$/.test(this_character) === false) {
+                continue;
+            }
 
         //if the next charcater isn't a number, only count the letter as a variable (also doesn't add the variable if it is already included)
-        if(isNaN(next_character)){
+        if (isNaN(next_character)) {
 
-            if(!variables.includes(this_character)){
+            if (!variables.includes(this_character)) {
                 variables.push(this_character);
             }
             //skips rest of the code to the next iteration
@@ -383,10 +431,10 @@ async function find_and_store_variables(expression_content, expression_to_solve)
         let full_variable = `${this_character}${next_character}`;
 
         //finds the rest of the id (e.g., x234 -> x2 is found first, so it continues to see if there is more (34))
-        for(let j = i + 2; j < expression_content_split_by_character.length - 1; j++){
+        for (let j = i + 2; j < expression_content_split_by_character.length - 1; j++) {
 
             //checks if the character is not a number and considers it the end of the id, stopping the loop
-            if(isNaN(expression_content_split_by_character[j])){
+            if (isNaN(expression_content_split_by_character[j])) {
                 break;
             }
 
@@ -395,24 +443,25 @@ async function find_and_store_variables(expression_content, expression_to_solve)
         }
 
         //if it is not already in the array, add it to the array of variables
-        if(!variables.includes(full_variable)){
+        if (!variables.includes(full_variable)) {
             variables.push(full_variable);
         }
     }
 
-    await get_user_to_replace_variables(expression_content, expression_to_solve, variables);
+    get_user_to_replace_variables(expression_content, expression_to_solve, variables);
 }
 
+
 //function gets the user to input input replacements for the variables, and stores the variables a keys and the users values as values of the keys in the object and passes that down
-async function get_user_to_replace_variables(expression_content, expression_to_solve, variables){
+async function get_user_to_replace_variables(expression_content, expression_to_solve, variables) {
     let variables_and_substitutes = {};
 
-    for(let variable of variables){
+    for (let variable of variables) {
         //get value to substitue the variable with
         let substitute_with = await get_value_to_substitute_variable_with(variable);
 
         //if user cancels
-        if(substitute_with === undefined){
+        if (substitute_with === undefined) {
             //check if the storage path exists before proceeding to get user action choice
             check_if_expression_storage_path_exists();
             return;
@@ -428,16 +477,16 @@ async function get_user_to_replace_variables(expression_content, expression_to_s
 }
 
 //function does actual replacing of variables 
-async function substitue_the_variables(expression_content, expression_to_solve, variables_and_substitues){
+async function substitue_the_variables(expression_content, expression_to_solve, variables_and_substitues) {
     //extracts variables from
     let variables = Object.keys(variables_and_substitues);
 
     //sorts the variables by length in descending order to bring variables with ids in first place
-    variables.sort((a,b) => b.length - a.length);
+    variables.sort((a, b) => b.length - a.length);
 
 
     //because of preceeding code, variables with longer ids are replaced first
-    for(let variable of variables){
+    for (let variable of variables) {
         expression_content = expression_content.replaceAll(variable, variables_and_substitues[variable]);
     }
 
@@ -447,9 +496,13 @@ async function substitue_the_variables(expression_content, expression_to_solve, 
     solve_the_expression(expression_content);
 }
 
+async function special_character_decryption(expression_content) {
+
+}
+
 
 //solves the expression, and shows the results 
-async function solve_the_expression(expression_content){
+async function solve_the_expression(expression_content) {
     let fix_operator_errors = {
         "++": "+",
         "--": "-",
@@ -461,14 +514,19 @@ async function solve_the_expression(expression_content){
     let result = 0;
     let processed_expression = expression_content;
 
-        //prevent potential operator errors
-        let operator_errors = Object.keys(fix_operator_errors);
-        for(let operator_error of operator_errors){
-            processed_expression = processed_expression.replaceAll(operator_error, fix_operator_errors[operator_error]);
-        }
+    //prevent potential operator errors
+    let operator_errors = Object.keys(fix_operator_errors);
+    for (let operator_error of operator_errors) {
+        processed_expression = processed_expression.replaceAll(operator_error, fix_operator_errors[operator_error]);
+    }
 
+    try {
         //solves expression
-        result = eval(processed_expression);;
+        result = eval(processed_expression);
+    }
+    catch (error) {
+        clack.log.error(String(error))
+    }
 
     await create_spinner(expression_solving_spinner_text, expression_solving_spinner_complete_text, 500);
     clack.note(processed_expression, `Output: ${String(result)}`);
@@ -484,13 +542,13 @@ async function get_value_to_substitute_variable_with(variable) {
     let number_to_substitute_variable_with = await clack.text({
         message: `Enter number to substitute ${variable} with:`,
         validate: (input) => {
-            if(isNaN(input) && !input.includes("(", ")")){
+            if (isNaN(input) && !input.includes("(", ")")) {
                 return "Please input a valid number";
             }
         }
     });
 
-    if(clack.isCancel(number_to_substitute_variable_with)){
+    if (clack.isCancel(number_to_substitute_variable_with)) {
         clack.cancel(operation_canceled_text);
         return undefined;
     }
@@ -506,7 +564,7 @@ async function get_value_to_substitute_variable_with(variable) {
     let processed_input = number_to_substitute_variable_with;
     //prevent potential operator errors
     let operator_errors = Object.keys(fix_operator_errors);
-    for(let operator_error of operator_errors){
+    for (let operator_error of operator_errors) {
         processed_input = processed_input.replaceAll(operator_error, fix_operator_errors[operator_error]);
     }
 
@@ -555,14 +613,14 @@ async function get_expression_details(get_expression_content, action_intent, dis
         return undefined;
     }
 
-    await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+    await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
     //if action is edit, displays previous file content
     let full_expression_storage_file_path = `${expression_storage_directory_path}/${expresion_name.trim()}.${expression_storage_file_format}`;
     if (display_old_content === true) {
 
         create_spinner(expression_edit_reading_old_spinner_text, expression_edit_reading_old_spinner_complete_text, 500);
 
-        await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+        await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
 
         let old_expression_content = await fs.readFile(full_expression_storage_file_path, text_encoding);
         clack.note(old_expression_content, `${expresion_name}`);
@@ -570,7 +628,7 @@ async function get_expression_details(get_expression_content, action_intent, dis
         //change the placeholder to make sure the user knows the previous value
         expression_content_prompt_placeholder = old_expression_content;
 
-        await create_spinner(busy_spinner_text, busy_spinner_complete_text,500);
+        await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
     }
 
     let expression_content = "";
