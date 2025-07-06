@@ -276,7 +276,7 @@ async function get_name_of_equation_to_solve() {
         if (expression_to_solve != undefined) {
             //get expression content
             let expression_content = await fs.readFile(expression_to_solve.storage_file_path, text_encoding);
-            special_character_encryption(expression_content, expression_to_solve);
+            special_character_and_function_encryption(expression_content, expression_to_solve);
         }
         else {
             //checks if everything is okay before running get user action
@@ -291,14 +291,14 @@ async function get_name_of_equation_to_solve() {
     }
 }
 
-//exncryption of special charcaters and advanced functions (this is to prevent messing up variable finding process)
-async function special_character_encryption(expression_content, expression_to_solve) {
+//encryption of special charcaters and advanced functions (this is to prevent messing up variable finding process)
+async function special_character_and_function_encryption(expression_content, expression_to_solve) {
     let special_character_to_replace = {
         "^": "**(",
         "_": "**(1/",
     }
     let to_replace = {
-        ":pi": "~()",
+        ":pi": "~",
 
         ":sin": "@",
         ":sinh": "@?",
@@ -359,10 +359,10 @@ async function special_character_encryption(expression_content, expression_to_so
         }
     })
 
-
-    for (let chars_to_replace in to_replace) {
-        expression_content = expression_content.replaceAll(chars_to_replace, to_replace[chars_to_replace]);
-    }
+    let things_to_replace = Object.keys(to_replace);
+    //sort to prioritise longer strings to avoid situations where part of the longer string is replaced because it contains a shorter one
+    things_to_replace.sort((a,b) => b.length - a.length);
+    things_to_replace.map((string) => expression_content = expression_content.replaceAll(string, to_replace[string]));
 
     perform_basic_replacements(expression_content, expression_to_solve);
 }
@@ -389,9 +389,10 @@ async function perform_basic_replacements(expression_content, expression_to_solv
     })
     
 
-    for (let chars_to_replace in to_replace) {
-        expression_content = expression_content.replaceAll(chars_to_replace, to_replace[chars_to_replace]);
-    }
+    let strings_to_replace = Object.keys(to_replace);
+    //sort to prioritise longer strings to avoid situations where part of the longer string is replaced because it contains a shorter one
+    strings_to_replace.sort((a,b) => b.length - a.length);
+    strings_to_replace.map((string) => expression_content = expression_content.replaceAll(string, to_replace[string]));
 
 
     //styling purposes
@@ -487,18 +488,48 @@ async function substitue_the_variables(expression_content, expression_to_solve, 
     variables.sort((a, b) => b.length - a.length);
 
     //because of preceeding code, variables with longer ids are replaced first
-    variables.map((variable) => {
-        expression_content = expression_content.replaceAll(variable, variables_and_substitues[variable]);
-    });
+    variables.map((variable) => expression_content = expression_content.replaceAll(variable, variables_and_substitues[variable]));
 
     await create_spinner(substituting_variables_spinner_text, substituting_variables_spinner_complete_text, 250);
     clack.note(expression_content, expression_to_solve.name);
 
-    solve_the_expression(expression_content);
+    function_decryption(expression_content);
 }
 
 async function function_decryption(expression_content) {
-    
+    let encryption_codes_and_values = {
+        "~" : "Math.PI",
+
+        "@": "Math.sin",
+        "@?": "Math.sinh",
+        "@'": "Math.asin",
+        "@'?": "Math.asinh",
+
+        "#": "Math.cos",
+        "#?": "Math.cosh",
+        "#'": "Math.acos",
+        "#'?": "Math.acosh",
+
+        "&": "Math.tan",
+        "&?": "Math.tanh",
+        "&'": "Math.atan",
+        "&'?": "Math.atanh",
+
+        "|": "Math.log",
+        "||": "Math.log10",
+
+        //function i created myself
+        "!" : "factorial",
+    }
+
+    let encryption_code = Object.keys(encryption_codes_and_values);
+
+    //sort in descending order to prioritise longer code in order to avoid replacing part of a code because said part represents another code
+    encryption_code.sort((a,b) => b.length - a.length);
+    //replace all codes with their values
+    encryption_code.map((code) => expression_content = expression_content.replaceAll(code, encryption_codes_and_values[code]));
+
+    solve_the_expression(expression_content);
 }
 
 
@@ -572,6 +603,15 @@ async function get_value_to_substitute_variable_with(variable) {
     return number_to_substitute_variable_with;
 }
 
+function factorial(number){
+    let output = 1;
+
+    for(x = number; x > 1; x--){
+        output *= x;
+    }
+
+    return output;
+}
 
 //utility functions
 
