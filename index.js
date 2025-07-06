@@ -574,10 +574,13 @@ async function get_value_to_substitute_variable_with(variable) {
     let number_to_substitute_variable_with = await clack.text({
         message: `Enter number to substitute ${variable} with:`,
         validate: (input) => {
+            if(input.trim() == ""){
+                return "Please input a valid number";
+            }
             if (isNaN(input) && !input.includes("(", ")")) {
                 return "Please input a valid number";
             }
-        }
+        },
     });
 
     if (clack.isCancel(number_to_substitute_variable_with)) {
@@ -633,6 +636,9 @@ async function get_expression_details(get_expression_content, action_intent, dis
         placeholder: "name",
         //validates depending on the type of action
         validate: (value) => {
+            if(value.trim() == ""){
+                return "Please enter a name";
+            }
             if (action_intent == "create" || action_intent == "get_new_name_for_rename") {
 
                 //checks if file exists and displays a error mesagge if so
@@ -674,10 +680,16 @@ async function get_expression_details(get_expression_content, action_intent, dis
 
     let expression_content = "";
     if (get_expression_content === true) {
+         //if get_expression_content == false, disable = true, disabling it
         expression_content = await clack.text({
             message: `Enter new content of ${expresion_name}`,
             placeholder: expression_content_prompt_placeholder,
-            //if get_expression_content == false, disable = true, disabling it
+            validate: (value) => {
+                if(value.trim() == ""){
+                    return "Please enter a name";
+                }
+            }
+           
         })
         if (clack.isCancel(expression_content)) {
             clack.cancel(operation_canceled_text);
