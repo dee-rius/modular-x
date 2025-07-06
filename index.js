@@ -326,27 +326,30 @@ async function special_character_and_function_encryption(expression_content, exp
 
     expression_content_split_by_character.map((this_character, index) => {
         let next_character = expression_content_split_by_character[index + 1];
+        let replace_special = "";
+        let to_replace_with = "";
 
         //skips if this character is not included in the for loop
         if(special_character_to_replace[this_character] === undefined){ return; }
 
         //this for when no brackets are used -> just checks if the next character is a number 
         if (!isNaN(next_character)) {
-            let replace_special = `${this_character}${next_character}`
-            let to_replace_with = `${special_character_to_replace[this_character]}${next_character}`
+            replace_special = `${this_character}${next_character}`
+            to_replace_with = `${special_character_to_replace[this_character]}${next_character}`
 
             //finds the rest of the digits after the special character
-            expression_content_split_by_character.map((char, this_index) => {
-                if(this_index >= index + 2 && !isNaN(char)) {replace_special += char; to_replace_with += char;}
-            })
+            for(let next_next_char_index = index + 2; next_next_char_index < expression_content_split_by_character.length; next_next_char_index ++){
+                let this_character = expression_content_split_by_character[next_next_char_index];
 
-            //if you look at the special chatacter to replace object, you will find that bracket is opened, it is now closed
-            to_replace[replace_special] = `${to_replace_with})`
+                //gets the all the characters in brackets
+                if(isNaN(this_character)) {break}
+                else{replace_special += char; to_replace_with += char;}
+            }
         }
         //if the next character is in brackets
         else if(next_character == "("){
-            let replace_special = `${this_character}${next_character}`
-            let to_replace_with = `${special_character_to_replace[this_character]}${next_character}`
+            replace_special = `${this_character}${next_character}`
+            to_replace_with = `${special_character_to_replace[this_character]}${next_character}`
 
             //finds the rest of the digits after the special character
             for(let next_next_char_index = index + 2; next_next_char_index < expression_content_split_by_character.length; next_next_char_index ++){
@@ -356,7 +359,11 @@ async function special_character_and_function_encryption(expression_content, exp
                 if(this_character == ")") {replace_special += char; to_replace_with += char; break}
                 else{replace_special += char; to_replace_with += char;}
             }
+
         }
+
+        //if you look at the special chatacter to replace object, you will find that bracket is opened, it is now closed
+        to_replace[replace_special] = `${to_replace_with})`
     })
 
     let things_to_replace = Object.keys(to_replace);
