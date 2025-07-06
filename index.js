@@ -336,8 +336,8 @@ async function special_character_encryption(expression_content, expression_to_so
             let to_replace_with = `${special_character_to_replace[this_character]}${next_character}`
 
             //finds the rest of the digits after the special character
-            expression_content_split_by_character.map((char, index) => {
-                if(index >= i + 2 && !isNaN(char)) {replace_special += char; to_replace_with += char;}
+            expression_content_split_by_character.map((char, this_index) => {
+                if(this_index >= index + 2 && !isNaN(char)) {replace_special += char; to_replace_with += char;}
             })
 
             //if you look at the special chatacter to replace object, you will find that bracket is opened, it is now closed
@@ -429,21 +429,27 @@ async function find_and_store_variables(expression_content, expression_to_solve)
         let full_variable = `${this_character}${next_character}`;
 
         //finds the rest of the id (e.g., x234 -> x2 is found first, so it continues to see if there is more (34))
-        expression_content_split_by_character.map((this_character, this_character_index) => {
+        for( 
+             let next_next_char_index = index + 2;
+             next_next_char_index < expression_content_split_by_character.length; 
+             next_next_char_index++
 
+            ) {
+            
+            let char = expression_content_split_by_character[next_next_char_index];
             //checks if the character is not a number and considers it the end of the id, stopping the loop
-            if (this_character_index < index + 2 && isNaN(this_character)) { return; }
+            if (isNaN(char)) { break; }
 
             //if it is a number, it is considered part of the id
-            full_variable += this_character;
-        })
+            full_variable += char;
+        }
 
         //if it is not already in the array, add it to the array of variables
         if (!variables.includes(full_variable)) {
             variables.push(full_variable);
         }
     })
-
+    
     get_user_to_replace_variables(expression_content, expression_to_solve, variables);
 }
 
@@ -460,6 +466,7 @@ async function get_user_to_replace_variables(expression_content, expression_to_s
         if (substitute_with === undefined) {
             //check if the storage path exists before proceeding to get user action choice
             check_if_expression_storage_path_exists();
+            return;
         }
 
         //store the variable and its substitute
