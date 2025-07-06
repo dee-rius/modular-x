@@ -129,10 +129,10 @@ async function get_user_action_choice() {
         process.exit(0);
     }
 
+    //don't know how to run it by the value
     for (let available_action_choice of available_action_choices) {
         if (available_action_choice.value == user_action_choice) {
             await create_spinner(`${opening_dialog_text_prefix} [${user_action_choice}] dialogue`, `Rendering expression [${user_action_choice}] dialogue`, 750);
-            await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
             await available_action_choice.corresponding_function();
         }
     }
@@ -324,33 +324,41 @@ async function special_character_encryption(expression_content, expression_to_so
     //ignores spaces
     let expression_content_split_by_character = expression_content.split("").filter(char => char != " ");
 
-    for (let i = 0; i < expression_content_split_by_character.length - 1; i++) {
-        let this_character = expression_content_split_by_character[i];
-        let next_character = expression_content_split_by_character[i + 1];
+    expression_content_split_by_character.map((this_character, index) => {
+        let next_character = expression_content_split_by_character[index + 1];
 
-        if (special_character_to_replace[this_character] !== undefined && !isNaN(next_character)) {
+        //skips if this character is not included in the for loop
+        if(special_character_to_replace[this_character] === undefined){ return; }
+
+        //this for when no brackets are used -> just checks if the next character is a number 
+        if (!isNaN(next_character)) {
             let replace_special = `${this_character}${next_character}`
             let to_replace_with = `${special_character_to_replace[this_character]}${next_character}`
 
             //finds the rest of the digits after the special character
-            for (let j = i + 2; j < expression_content_split_by_character.length - 1; j++) {
-
-                //checks if the character is not a number and considers it as not part of the number after the special character, stopping the loop
-                if (isNaN(expression_content_split_by_character[j])) {
-                    break;
-                }
-
-                //if it is a number, it is considered part of the number after the special character
-                replace_special += expression_content_split_by_character[j];
-                to_replace_with += expression_content_split_by_character[j];
-            }
+            expression_content_split_by_character.map((char, index) => {
+                if(index >= i + 2 && !isNaN(char)) {replace_special += char; to_replace_with += char;}
+            })
 
             //if you look at the special chatacter to replace object, you will find that bracket is opened, it is now closed
             to_replace[replace_special] = `${to_replace_with})`
-
         }
+        //if the next character is in brackets
+        else if(next_character == "("){
+            let replace_special = `${this_character}${next_character}`
+            let to_replace_with = `${special_character_to_replace[this_character]}${next_character}`
 
-    }
+            //finds the rest of the digits after the special character
+            for(let next_next_char_index = index + 2; next_next_char_index < expression_content_split_by_character.length; next_next_char_index ++){
+                let this_character = expression_content_split_by_character[next_next_char_index];
+
+                //gets the all the characters in brackets
+                if(this_character == ")") {replace_special += char; to_replace_with += char; break}
+                else{replace_special += char; to_replace_with += char;}
+            }
+        }
+    })
+
 
     for (let chars_to_replace in to_replace) {
         expression_content = expression_content.replaceAll(chars_to_replace, to_replace[chars_to_replace]);
@@ -367,21 +375,19 @@ async function perform_basic_replacements(expression_content, expression_to_solv
     //ignores spaces
     let expression_content_split_by_character = expression_content.split("").filter(char => char != " ");
 
-    for (let i = 0; i < expression_content_split_by_character.length - 1; i++) {
-        let this_character = expression_content_split_by_character[i];
-        let next_character = expression_content_split_by_character[i + 1];
-
+    expression_content_split_by_character.map((this_character, index) => {
+        let next_character = expression_content_split_by_character[index + 1];
 
         //checks if this_character isn't a letter or number or close bracket. If so, skips to the next iteration
-        if (/^[a-zA-Z]+$/.test(this_character) === false && isNaN(this_character) === true && this_character != ")") {
-            continue;
-        }
+        if (/^[a-zA-Z]+$/.test(this_character) === false && isNaN(this_character) === true && this_character != ")") { return;}
+
         //checks if the nex number is an open bracket or a letter
         if (next_character == "(" || /^[a-zA-Z]+$/.test(next_character) === true || special_character_encryption_prefixes.includes(next_character)) {
             //if so, inserts * between them (e.g., 2x -> 2*x, x(y - 2) -> x*(y-2)), 2:pi(x) -> 2~(x) -> 2 * ~(x);
             to_replace[`${this_character}${next_character}`] = `${this_character}*${next_character}`;
         }
-    }
+    })
+    
 
     for (let chars_to_replace in to_replace) {
         expression_content = expression_content.replaceAll(chars_to_replace, to_replace[chars_to_replace]);
@@ -404,26 +410,18 @@ async function find_and_store_variables(expression_content, expression_to_solve)
     let expression_content_split_by_character = expression_content.split("").filter(char => char != " ");
     let variables = [];
 
-    for (let i = 0; i < expression_content_split_by_character.length; i++) {
+    expression_content_split_by_character.map((this_character, index) => {
+        let next_character = expression_content_split_by_character[index + 1];
 
-        let this_character = expression_content_split_by_character[i];
-        let next_character = expression_content_split_by_character[i + 1];
-
-        if (this_character)
-
-            //if this character is not a letter, skip this iteration and move to the next one (character)
-            if (/^[a-zA-Z]+$/.test(this_character) === false) {
-                continue;
-            }
+        //if this character is not a letter, skip this iteration and move to the next one (character)
+        if (/^[a-zA-Z]+$/.test(this_character) === false) { return; }
 
         //if the next charcater isn't a number, only count the letter as a variable (also doesn't add the variable if it is already included)
         if (isNaN(next_character)) {
 
-            if (!variables.includes(this_character)) {
-                variables.push(this_character);
-            }
+            if (!variables.includes(this_character)) { variables.push(this_character); }
             //skips rest of the code to the next iteration
-            continue;
+            return;
         }
 
         //if this character is a letter and the next character is a number (e.g., x2)
@@ -431,22 +429,20 @@ async function find_and_store_variables(expression_content, expression_to_solve)
         let full_variable = `${this_character}${next_character}`;
 
         //finds the rest of the id (e.g., x234 -> x2 is found first, so it continues to see if there is more (34))
-        for (let j = i + 2; j < expression_content_split_by_character.length - 1; j++) {
+        expression_content_split_by_character.map((this_character, this_character_index) => {
 
             //checks if the character is not a number and considers it the end of the id, stopping the loop
-            if (isNaN(expression_content_split_by_character[j])) {
-                break;
-            }
+            if (this_character_index < index + 2 && isNaN(this_character)) { return; }
 
             //if it is a number, it is considered part of the id
-            full_variable += expression_content_split_by_character[j];
-        }
+            full_variable += this_character;
+        })
 
         //if it is not already in the array, add it to the array of variables
         if (!variables.includes(full_variable)) {
             variables.push(full_variable);
         }
-    }
+    })
 
     get_user_to_replace_variables(expression_content, expression_to_solve, variables);
 }
@@ -464,7 +460,6 @@ async function get_user_to_replace_variables(expression_content, expression_to_s
         if (substitute_with === undefined) {
             //check if the storage path exists before proceeding to get user action choice
             check_if_expression_storage_path_exists();
-            return;
         }
 
         //store the variable and its substitute
@@ -484,11 +479,10 @@ async function substitue_the_variables(expression_content, expression_to_solve, 
     //sorts the variables by length in descending order to bring variables with ids in first place
     variables.sort((a, b) => b.length - a.length);
 
-
     //because of preceeding code, variables with longer ids are replaced first
-    for (let variable of variables) {
+    variables.map((variable) => {
         expression_content = expression_content.replaceAll(variable, variables_and_substitues[variable]);
-    }
+    });
 
     await create_spinner(substituting_variables_spinner_text, substituting_variables_spinner_complete_text, 250);
     clack.note(expression_content, expression_to_solve.name);
@@ -496,8 +490,8 @@ async function substitue_the_variables(expression_content, expression_to_solve, 
     solve_the_expression(expression_content);
 }
 
-async function special_character_decryption(expression_content) {
-
+async function function_decryption(expression_content) {
+    
 }
 
 
