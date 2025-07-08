@@ -7,7 +7,6 @@ Define once. Substitute anytime. Compute instantly.
 
 ## Description
 
-
 This CLI allows the you to **write** and store expressions `(e.g., 2x^2 - 3)` under any chosen name. 
 
 At any given time, you can **replace** the variables in the expression with numbers `(e.g., x = 3)` and **solve** them instantly.
@@ -36,7 +35,7 @@ The user has 6 actions.
 
 ### Using Variables
 
-- Variables must always be a **letter** `(e.g, x or y)`
+- Variables must always be a **letter** `(e.g, x or y)` and can either be upper or lowercase
 - **Identifiers** (will be referred to as **id**): follow a letter with **only** a number (the id) when wanting to use the *same* letter for variables that have *different* values (e.g., to show they are related).
 
   Examples:
@@ -51,5 +50,27 @@ The user has 6 actions.
 
         (x2 - x1)^2 + (y2 - y1)^2) //each x and y variable is considered unique because of their ids
         
+  ```
+
+  ### Multiplying
+  When multiplying a pair of anything, one can simply use `[number/variable] * [number/variable]`.
+  
+  If the first thing in the pair, is a number, variable or bracket, and the second is a variable or bracket, you can ommit the ` * `.
+  Note: they must **have no spaces** between them!
+
+  Examples: (`->` means auto-changed to)
+  ```
+  
+        xyz -> x*y*z
+
+        2xx3 -> 2*x*x3
+
+        2(x + 3) -> 2*(x + 3)
+
+        (X + Y)Z -> (X + Y)*Z
+          
+        (x - y)(x2y4x) -> (x - y)*(x2*y4*x)
+
+        x333 //333 is considered an id for the variable
   ```
 
