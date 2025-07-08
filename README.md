@@ -52,25 +52,24 @@ The user has 6 actions.
         
   ```
 
-  ### Multiplying
-  When multiplying a pair of anything, one can simply use `[number/variable] * [number/variable]`.
+### Multiplying
+When multiplying a pair of anything, one can simply use `[number/variable] * [number/variable]`.
   
-  If the first thing in the pair, is a number, variable or bracket, and the second is a variable or bracket, you can ommit the ` * `.
-  Note: they must **have no spaces** between them!
+If the first thing in the pair, is a number, variable or bracket, and the second is a variable or bracket, you can ommit the ` * `.
+Note: they must **have no spaces** between them!
 
-  Examples: (`->` means auto-changed to)
-  ```
-  
-        xyz -> x*y*z
+Examples: (`->` means auto-changed to)
+```
+      xyz -> x*y*z
 
-        2xx3 -> 2*x*x3
+      2xx3 -> 2*x*x3
 
-        2(x + 3) -> 2*(x + 3)
+      2(x + 3) -> 2*(x + 3)
 
-        (X + Y)Z -> (X + Y)*Z
+      (X + Y)Z -> (X + Y)*Z
           
-        (x - y)(x2y4x) -> (x - y)*(x2*y4*x)
+      (x - y)(x2y4x) -> (x - y)*(x2*y4*x)
 
-        x333 //333 is considered an id for the variable
-  ```
+      x333 //333 is considered an id for the variable
+```
 
