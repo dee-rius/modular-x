@@ -115,7 +115,7 @@ async function check_if_expression_storage_path_exists() {
 }
 
 async function get_user_action_choice() {
-    clack.log.warn(set_text_colour("Note: Ctrl + C to quit/cancel", "warn"));
+    clack.log.warn(chalk.yellow("Note: Ctrl + C to quit/cancel");
     await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
 
     const user_action_choice = await clack.select({
@@ -710,22 +710,6 @@ async function get_expression_details(get_expression_content, action_intent, dis
 
 //promise-based set timeout
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-
-function set_text_colour(string, type = "default") {
-    switch (type) {
-        case "action_keyword":
-            return chalk.blue(string);
-        case "error":
-            return chalk.red(string);
-        case "success":
-            return chalk.green(string);
-        case "warn":
-            return chalk.yellow(string);
-        case other:
-            return string;
-    }
-}
 
 async function create_spinner(spinner_start_text, spinner_stop_text, spin_duration_in_ms) {
     let spinner = clack.spinner();
