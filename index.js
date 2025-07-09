@@ -115,7 +115,7 @@ async function check_if_expression_storage_path_exists() {
 }
 
 async function get_user_action_choice() {
-    clack.log.warn(chalk.yellow("Note: Ctrl + C to quit/cancel");
+    clack.log.warn(chalk.yellow("Note: Ctrl + C to quit/cancel"));
     await create_spinner(busy_spinner_text, busy_spinner_complete_text, 500);
 
     const user_action_choice = await clack.select({
