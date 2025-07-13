@@ -69,7 +69,9 @@ The user has 6 actions.
 
   > **Note**:
   > <br/>
-  >     replacing varibales does not modify the stored expression.
+  > - replacing varibales does not modify the stored expression.
+  > - varibles can either be replace by numbers or expression, but expressions need to be enclosed in parentheses.
+  > - variable substitues cannot contain letter (e.g., you cannot replace x with (y + 1) or y)
 
 <br/>
 
@@ -86,19 +88,19 @@ The user has 6 actions.
 - Variables must always be a **letter** `(e.g, x or y)` and can either be upper or lowercase
 - **Identifiers** (will be referred to as **id**): follow a letter with **only** a number (the id) when wanting to use the *same* letter for variables that have *different* values (e.g., to show they are related).
 
-  Examples:
-  ```
-        xx //the 2 x variables are considered the same--they have the same letter and no id
+Examples:
+```
+  xx //the 2 x variables are considered the same--they have the same letter and no id
 
-        x2 + x2x2 //the 3 x variables are considered the same--they have the same letter and id
+  x2 + x2x2 //the 3 x variables are considered the same--they have the same letter and id
       
-        x222x  //x and x will be considered different variables because one has an id
+  x222x  //x and x will be considered different variables because one has an id
       
-        x233 + x2  //the 233 and 2 are used as ids to count the 2 x variables as different
+  x233 + x2  //the 233 and 2 are used as ids to count the 2 x variables as different
 
-        (x2 - x1)^2 + (y2 - y1)^2) //each x and y variable is considered unique because of their ids
+  (x2 - x1)^2 + (y2 - y1)^2 //each x and y variable is considered unique because of their ids
         
-  ```
+```
 
 <br/>
 <br/>
@@ -111,17 +113,17 @@ Note: they must **have no spaces** between them!
 
 Examples: (`->` means auto-changed to)
 ```
-      xyz -> x*y*z
+  xyz -> x*y*z
 
-      2xx3 -> 2*x*x3
+  2xx3 -> 2*x*x3
 
-      2(x + 3) -> 2*(x + 3)
+  2(x + 3) -> 2*(x + 3)
 
-      (X + Y)Z -> (X + Y)*Z
+  (X + Y)Z -> (X + Y)*Z
           
-      (x - y)(x2y4x) -> (x - y)*(x2*y4*x)
+  (x - y)(x2y4x) -> (x - y)*(x2*y4*x)
 
-      x333 //333 is considered an id for the variable
+  x333 //333 is considered an id for the variable
 ```
 <br/>
 <br/>
