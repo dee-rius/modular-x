@@ -270,7 +270,7 @@ async function rename_expression() {
 //gets name of equation to solve
 async function get_name_of_equation_to_solve() {
 
-    let expression_to_solve = await get_expression_details(false, "get_name_of_expression_to_solve", false);
+    let expression_to_solve = await get_expression_details(false, "solve", false);
     try {
 
         if (expression_to_solve != undefined) {
@@ -625,7 +625,7 @@ function factorial(number){
 
 //utility functions
 
-async function get_expression_details(get_expression_content, action_intent, display_old_content, expression_name_propmt_message = "Enter expression name") {
+async function get_expression_details(get_expression_content, action_intent, display_old_content, expression_name_propmt_message = `Enter expression name to [${action_intent}]`) {
     //gets all sroted files;
     let expression_storage_files = [];
     try {
