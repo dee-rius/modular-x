@@ -584,9 +584,11 @@ async function get_value_to_substitute_variable_with(variable) {
             if(input.trim() == ""){
                 return "Please input a valid number";
             }
-            if (isNaN(input) && !input.includes("(", ")")) {
-                return "Please input a valid number";
+            if (!input.includes("(", ")")) {
+                return "Please input a valid number or wrap your expression with in parenthesis '()'";
             }
+
+            if(/[a-zA-Z]/.test(input)){ return "Substitute must not include a variable"}
         },
     });
 
@@ -646,7 +648,7 @@ async function get_expression_details(get_expression_content, action_intent, dis
             if(value.trim() == ""){
                 return "Please enter a name";
             }
-            if (action_intent == "create" || action_intent == "get_new_name_for_rename") {
+            if (action_intent == "create" || action_intent == "rename") {
 
                 //checks if file exists and displays a error mesagge if so
                 if (expression_storage_files.includes(`${value.trim()}.${expression_storage_file_format}`)) {
@@ -658,6 +660,13 @@ async function get_expression_details(get_expression_content, action_intent, dis
                 if (!expression_storage_files.includes(`${value.trim()}.${expression_storage_file_format}`)) {
                     return expression_not_found_text;
                 }
+            }
+
+            //makes sure the expression name only contains alphanumeric characters
+            let not_allowed = ["'*'", "'?'", "':'", "'|'"];
+
+            if(value.includes("*") || value.includes("?") || value.includes(":")|| value.includes("|")){
+                    return `Name must not contain ${not_allowed.join(" ; ")}`;
             }
         }
     });
