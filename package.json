@@ -1,15 +1,16 @@
 {
-  "name": "modular-expressions",
+  "name": "modular-x",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ."
   },
+  "bin": "./index.js",
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Define, Subsitute and Compute expressions instantly",
   "dependencies": {
     "@clack/prompts": "^0.11.0",
     "chalk": "^5.4.1",
