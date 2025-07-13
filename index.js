@@ -1,4 +1,4 @@
-#!usr/bin/env node
+#!/usr/bin/env node
 
 import * as clack from "@clack/prompts";
 import path from "path";
