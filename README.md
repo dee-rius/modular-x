@@ -125,28 +125,31 @@ __functions below are used in the same way as each other (though they return dif
     2:sin(x + 2) -> 2 * sin(x + 2)
     :sin(x - 3)(5 + 2) -> sin(x - 3)*(5-2)
   ```
-- `sinh()`: returns the hyperbolic sine of the expression/variable/number in parentheses
-- `asin()`: returns the arcsine of the expression/variable/number in parentheses.
-- `asinh()`: returns the hyperbolic arcsine of the expression/variable/number in parentheses.
+  > **Note**:
+  > <br/>
+  > The value of the expression/number/value is always considered to be in radians
+- `sinh()`: returns the hyperbolic sine of the expression/variable/number (in radians) in parentheses.
+- `asin()`: returns the arcsine of the expression/variable/number (in radians) in parentheses.
+- `asinh()`: returns the hyperbolic arcsine of the expression/variable/number (in radians) in parentheses.
 <br/>
 
-- `cos()`: returns the cosine of the expression/variable/number in parentheses.
+- `cos()`: returns the cosine of the expression/variable/number (in radians) in parentheses.
 
-- `cosh()`: returns the hyperbolic cosine of the expression/variable/number in parentheses.
+- `cosh()`: returns the hyperbolic cosine of the expression/variable/number (in radians) in parentheses.
 
-- `acos()`: returns the arccosine (inverse cosine) of the expression/variable/number in parentheses.
+- `acos()`: returns the arccosine (inverse cosine) of the expression/variable/number (in radians) in parentheses.
 
-- `acosh()`: returns the hyperbolic arccosine of the expression/variable/number in parentheses.
+- `acosh()`: returns the hyperbolic arccosine of the expression/variable/number (in radians) in parentheses.
 
   <br/>
 
 - `tan()`: returns the tangent of the expression/variable/number in parentheses.
 
-- `tanh()`: returns the hyperbolic tangent of the expression/variable/number in parentheses.
+- `tanh()`: returns the hyperbolic tangent of the expression/variable/number (in radians) in parentheses.
 
-- `atan()`: returns the arctangent (inverse tangent) of the expression/variable/number in parentheses.
+- `atan()`: returns the arctangent (inverse tangent) of the expression/variable/number (in radians) in parentheses.
 
-- `atanh()`: returns the hyperbolic arctangent of the expression/variable/number in parentheses.
+- `atanh()`: returns the hyperbolic arctangent of the expression/variable/number (in radians) in parentheses.
 
   <br/>
 
