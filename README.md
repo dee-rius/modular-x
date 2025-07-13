@@ -2,9 +2,21 @@ Define once. Substitute anytime. Compute instantly.
 
 ![Static Badge](https://img.shields.io/badge/Language-Javascript-6ff2a2)
 
+## Table of contents:
+- [Description](#description)
+- [Usage](#usage)
+- [Core featurs](#core-features)
+    - [Actions](#actions)
+    - [Using Variabels](#using-variables)
+    - [Multiplying](#multiplying)
+    - [Functions](#functions)
+- [Packages Used](#packages-used)
 
+<br/>
+<br/>
 
 ## Description
+
 <br/>
 
 This CLI allows the you to **write** and store expressions `(e.g., 2x^2 - 3)` under any chosen name. 
@@ -14,8 +26,17 @@ At any given time, you can **replace** the variables in the expression with numb
 The expressions can range from basic addition, subtraction, multiplication and division to the pythagorean theorem and quadratic formula.
 
 <br/>
+<br/>
 
 ## Usage
+```
+  npx modular-x
+```
+
+<br/>
+<br/>
+
+## Core features
 <br/>
 
 ### Actions
@@ -102,6 +123,8 @@ Examples: (`->` means auto-changed to)
 
       x333 //333 is considered an id for the variable
 ```
+<br/>
+<br/>
 
 ### Functions
 >**Note**:
@@ -155,6 +178,11 @@ __functions below are used in the same way as each other (though they return dif
 
 - `log()`: returns the natural logarithm (base e) of the expression/variable/number in parentheses.
 
-- `logt()`: returns the base 10 logarithm of the expression/variable/number in parentheses. *(Note: 
+- `logt()`: returns the base 10 logarithm of the expression/variable/number in parentheses.
+<br/>
+<br/>
+<br/>
 
-
+## Packages used:
+- [Clack](https://github.com/bombshell-dev/clack)
+- [fs](https://github.com/npm/fs)
