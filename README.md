@@ -184,5 +184,5 @@ __functions below are used in the same way as each other (though they return dif
 <br/>
 
 ## Packages used:
-- [Clack](https://github.com/bombshell-dev/clack)
-- [fs](https://github.com/npm/fs)
+- [Clack](https://github.com/bombshell-dev/clack): for the appearance of the cli.
+- [fs](https://github.com/npm/fs): for creating and deleting files for storing expressions
