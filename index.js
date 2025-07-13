@@ -718,10 +718,4 @@ async function create_spinner(spinner_start_text, spinner_stop_text, spin_durati
     spinner.stop(spinner_stop_text);
 }
 
-
-function get_randomInt(min, max) {
-    return Math.floor((Math.random() * (max - min)) + min);
-}
-
-
 boot();
