@@ -128,11 +128,19 @@ Examples: (`->` means auto-changed to)
 <br/>
 <br/>
 
+### Using Special characters 
+For:
+- indices: use `^` (e.g., 4^2 -> 16; (2+2)^(1+2) -> 64)
+- root: use `_` (e.g., 16_2 -> 4; (32*2)_(1.5*2) -> 4
+
+<br/>
+<br/>
+
 ### Functions
 >**Note**:
 ><br/>
 >  - all funcitons must be preceeded by a semi column `:` (e.g., :sin(x))
->  - they can be preceeded by a number or letter when multiplying `(e.g., 2:pi -> 2 * : pi)`
+>  - they can be preceeded by a number or letter when multiplying `(e.g., 2:pi -> 2 * :pi)`
 >  - all functions that are followed by `()` must have an expression/variable/number in between the parentheses (e.g. `3:sin(x + 1)` )
 
     
@@ -180,7 +188,13 @@ __functions below are used in the same way as each other (though they return dif
 
 - `log()`: returns the natural logarithm (base e) of the expression/variable/number in parentheses.
 
+  > Note: for custom log bases `(e.g., log3(9))`, divide the log of the number in brackets, by the log of the base
+  > ```
+  >     :log(9)/:log(3) -> 2
+  > ```
+
 - `logt()`: returns the base 10 logarithm of the expression/variable/number in parentheses.
+
 <br/>
 <br/>
 <br/>
